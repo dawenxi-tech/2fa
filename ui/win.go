@@ -79,5 +79,4 @@ func (w *Window) layout(gtx layout.Context, th *material.Theme) layout.Dimension
 	return layout.Dimensions{
 		Size: gtx.Constraints.Max,
 	}
-
 }
