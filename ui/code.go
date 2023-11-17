@@ -49,13 +49,6 @@ func (cv CodeView) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 		return Code{}.Layout(gtx, th)
 	})
 
-	layout.NW.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			gtx.Constraints.Max.X = 28
-			return closeIcon.Layout(gtx, color.NRGBA{R: 0xFF, A: 0xFF})
-		})
-	})
-
 	layout.SE.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Max.X = 40
