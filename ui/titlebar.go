@@ -5,8 +5,6 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	"gioui.org/widget"
-	"github.com/dawenxi-tech/2fa/icon"
 	"image/color"
 )
 
@@ -23,30 +21,9 @@ func (b Background) Layout(gtx layout.Context, w layout.Widget) layout.Dimension
 	return dims
 }
 
-var closeIcon = func() *widget.Icon {
-	i, err := widget.NewIcon(icon.Close)
-	if err != nil {
-		panic(err)
-	}
-	return i
-}()
-
-var addIcon = func() *widget.Icon {
-	i, err := widget.NewIcon(icon.AddBordered)
-	if err != nil {
-		panic(err)
-	}
-	return i
-}()
-
 type TitleBar struct{}
 
 func (TitleBar) Layout(gtx layout.Context) layout.Dimensions {
-	//gtx.Constraints.Max.Y = 40
-
-	//Background{Color: color.NRGBA{B: 0xff, A: 0xff}}
-
-	//return closeIcon.Layout(gtx, color.NRGBA{R: 0xFF, A: 0xFF})
 
 	return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

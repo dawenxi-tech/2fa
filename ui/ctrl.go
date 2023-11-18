@@ -39,6 +39,10 @@ func newController() *Controller {
 func (ctrl *Controller) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 
 	ctrl.processEvents(gtx)
+	icon := circleIcon
+	if ctrl.click.Hovered() {
+		icon = closeIcon
+	}
 
 	switch ctrl.page {
 	case PageCode:
@@ -54,7 +58,7 @@ func (ctrl *Controller) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints.Max.X = 28
 			return ctrl.click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return closeIcon.Layout(gtx, color.NRGBA{R: 0xFF, A: 0xFF})
+				return icon.Layout(gtx, color.NRGBA{R: 0xFC, G: 0x60, B: 0x5C, A: 0xFF})
 			})
 		})
 	})
