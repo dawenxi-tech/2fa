@@ -1,11 +1,12 @@
 package ui
 
 import (
-	"fmt"
 	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/dawenxi-tech/2fa/storage"
 	"image/color"
 )
 
@@ -15,12 +16,15 @@ type Cell interface {
 
 type AddCode struct {
 	click widget.Clickable
+	ctrl  *Controller
 }
 
 func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if add.click.Clicked() {
 		// goto add view
-		fmt.Println("go to add view")
+		//fmt.Println("go to add view")
+		add.ctrl.page = PageAdd
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return add.click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -62,12 +66,17 @@ func (c Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 						Bottom: unit.Dp(10),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-							return material.Label(th, unit.Sp(32), "123456").Layout(gtx)
+							code := tryGetFA(c.code)
+							return material.Label(th, unit.Sp(32), code).Layout(gtx)
 						})
 					})
 				}))
 			})
 	})
+
+	if !c.edit {
+		return dims
+	}
 
 	ng := gtx
 	ng.Constraints.Max = dims.Size
@@ -88,6 +97,7 @@ type CodeView struct {
 	edit widget.Clickable
 
 	isEdit bool
+	valid  bool
 
 	cells []Cell
 }
@@ -97,7 +107,10 @@ func newCodeView() CodeView {
 	return CodeView{list: list, edit: widget.Clickable{}}
 }
 
-func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
+	if !cv.valid {
+		cv.reloadCodes()
+	}
 
 	btnColor := color.NRGBA{R: 0xDD, G: 0xDD, B: 0xDD, A: 0xFF}
 	if cv.edit.Hovered() {
@@ -110,7 +123,9 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	if cv.edit.Clicked() {
 		cv.isEdit = !cv.isEdit
 		if cv.isEdit {
-			cv.cells = append(cv.cells, &AddCode{})
+			cv.cells = append(cv.cells, &AddCode{ctrl: ctrl})
+		} else {
+			cv.cells = cv.cells[:len(cv.cells)-1]
 		}
 	}
 
@@ -130,6 +145,19 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	return layout.Dimensions{
 		Size: gtx.Constraints.Max,
 	}
+}
+
+func (cv *CodeView) reloadCodes() {
+	codes := storage.LoadCodes()
+	var cells []Cell
+	for _, v := range codes {
+		cells = append(cells, Code{title: v.Name, code: v.Secret.Val()})
+	}
+	if cv.isEdit {
+		cells = append(cells, cv.cells[len(cv.cells)-1])
+	}
+	cv.cells = cells
+	cv.valid = true
 }
 
 func _cond[T any](trueOrFalse bool, trueValue T, falseValue T) T {

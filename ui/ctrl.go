@@ -46,9 +46,9 @@ func (ctrl *Controller) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	switch ctrl.page {
 	case PageCode:
-		ctrl.cv.Layout(gtx, th)
+		ctrl.cv.Layout(gtx, th, ctrl)
 	case PageAdd:
-		ctrl.av.Layout(gtx, th)
+		ctrl.av.Layout(gtx, th, ctrl)
 	case PageSettings:
 
 	}

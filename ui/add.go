@@ -9,6 +9,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"gioui.org/x/component"
+	"github.com/dawenxi-tech/2fa/storage"
 	"github.com/xlzd/gotp"
 	"image"
 	"image/color"
@@ -30,14 +31,15 @@ func newAddView() AddView {
 		editor:    editor,
 		applyBtn:  &widget.Clickable{},
 		codeInput: &component.TextField{},
+		cancelBtn: &widget.Clickable{},
 	}
 
 	return av
 }
 
-func (av AddView) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (av AddView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
 
-	av.processEvents(gtx)
+	av.processEvents(gtx, ctrl)
 
 	txt := av.codeInput.Text()
 
@@ -74,24 +76,42 @@ func (av AddView) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 	}
 }
 
-func (av AddView) processEvents(gtx layout.Context) {
+func (av AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 	if av.applyBtn.Clicked() {
+		code := av.codeInput.Text()
+		if !isCodeValid(code) {
+			return
+		}
 
+		codes := storage.LoadCodes()
+		codes = append(codes, storage.Code{Name: "aabb", Secret: storage.NewEncryptData(code)})
+		storage.SaveCode(codes)
+
+		ctrl.cv.valid = false
+
+		ctrl.page = PageCode
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 	if av.cancelBtn.Clicked() {
-
+		ctrl.page = PageCode
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 }
 
-func tryGetFA(code string) (ret string) {
+func isCodeValid(code string) (valid bool) {
 	defer func() {
 		if x := recover(); x != nil {
-			ret = "000000"
+			valid = false
 		}
 	}()
-	if code == "" {
-		ret = "000000"
-		return
+	gotp.NewDefaultTOTP(code)
+	valid = true
+	return
+}
+
+func tryGetFA(code string) string {
+	if !isCodeValid(code) {
+		return "000000"
 	}
 	totp := gotp.NewDefaultTOTP(code)
 	return totp.Now()
