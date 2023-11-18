@@ -7,7 +7,6 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"image/color"
 	"log"
 	"os"
 )
@@ -16,17 +15,16 @@ const _winWidth = 320
 const _winHeight = 568
 
 type Window struct {
-	win *app.Window
-
-	code CodeView
-	add  AddView
+	win  *app.Window
+	ctrl *Controller
 }
 
 func NewWin() *Window {
-	return &Window{
-		code: NewCodeView(),
-		add:  newAddView(),
+	win := &Window{
+		ctrl: newController(),
 	}
+	win.ctrl.win = win
+	return win
 }
 
 func (w *Window) Run() {
@@ -65,18 +63,5 @@ func (w *Window) loop() error {
 }
 
 func (w *Window) layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-
-	//return w.code.Layout(gtx, th)
-
-	w.add.Layout(gtx, th)
-
-	layout.NW.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			gtx.Constraints.Max.X = 28
-			return closeIcon.Layout(gtx, color.NRGBA{R: 0xFF, A: 0xFF})
-		})
-	})
-	return layout.Dimensions{
-		Size: gtx.Constraints.Max,
-	}
+	return w.ctrl.Layout(gtx, th)
 }

@@ -18,6 +18,7 @@ type AddView struct {
 	editor    *widget.Editor
 	codeInput *component.TextField
 	applyBtn  *widget.Clickable
+	cancelBtn *widget.Clickable
 }
 
 func newAddView() AddView {
@@ -35,6 +36,9 @@ func newAddView() AddView {
 }
 
 func (av AddView) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+
+	av.processEvents(gtx)
+
 	txt := av.codeInput.Text()
 
 	code := tryGetFA(txt)
@@ -56,11 +60,26 @@ func (av AddView) Layout(gtx layout.Context, th *material.Theme) layout.Dimensio
 				gtx.Constraints.Min.X = gtx.Constraints.Max.X
 				return material.Button(th, av.applyBtn, "ADD").Layout(gtx)
 			})
-		}))
+		}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				gtx.Constraints.Min.X = gtx.Constraints.Max.X
+				return material.Button(th, av.cancelBtn, "CANCEL").Layout(gtx)
+			})
+		}),
+		)
 	})
 
 	return layout.Dimensions{
 		Size: gtx.Constraints.Max,
+	}
+}
+
+func (av AddView) processEvents(gtx layout.Context) {
+	if av.applyBtn.Clicked() {
+
+	}
+	if av.cancelBtn.Clicked() {
+
 	}
 }
 

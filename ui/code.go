@@ -39,7 +39,7 @@ type CodeView struct {
 	list *layout.List
 }
 
-func NewCodeView() CodeView {
+func newCodeView() CodeView {
 	list := layout.List{Axis: layout.Vertical, Alignment: layout.Middle}
 	return CodeView{list: &list}
 }
