@@ -13,6 +13,7 @@ import (
 	"github.com/xlzd/gotp"
 	"image"
 	"image/color"
+	"strings"
 )
 
 type AddView struct {
@@ -51,7 +52,7 @@ func (av AddView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controlle
 			Alignment: layout.Middle,
 		}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return av.codeInput.Layout(gtx, th, "CODE")
+				return av.codeInput.Layout(gtx, th, "CODE OR URI")
 			})
 		}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -79,16 +80,14 @@ func (av AddView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controlle
 func (av AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 	if av.applyBtn.Clicked() {
 		code := av.codeInput.Text()
-		if !isCodeValid(code) {
+		if secret := parseCodeOrUri(code); secret == "" {
 			return
 		}
 
-		codes := storage.LoadCodes()
-		codes = append(codes, storage.Code{Name: "aabb", Secret: storage.NewEncryptData(code)})
-		storage.SaveCode(codes)
+		storage.InsertCode(code)
 
 		ctrl.cv.valid = false
-
+		ctrl.cv.isEdit = false
 		ctrl.page = PageCode
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
@@ -98,23 +97,31 @@ func (av AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 	}
 }
 
-func isCodeValid(code string) (valid bool) {
+func parseCodeOrUri(codeOrUri string) (secret string) {
+	if strings.TrimSpace(codeOrUri) == "" {
+		return ""
+	}
+	secret = codeOrUri
+	parsed, _ := storage.ParseCode(codeOrUri)
+	if parsed != nil {
+		secret = parsed.Secret.Val()
+	}
 	defer func() {
 		if x := recover(); x != nil {
-			valid = false
+			secret = ""
 		}
 	}()
-	gotp.NewDefaultTOTP(code)
-	valid = true
+	gotp.NewDefaultTOTP(secret).Now()
 	return
 }
 
 func tryGetFA(code string) string {
-	if !isCodeValid(code) {
+	if secret := parseCodeOrUri(code); secret == "" {
 		return "000000"
+	} else {
+		totp := gotp.NewDefaultTOTP(secret)
+		return totp.Now()
 	}
-	totp := gotp.NewDefaultTOTP(code)
-	return totp.Now()
 }
 
 func drawBorder(ops *op.Ops, c color.NRGBA, width float32, x0, y0, x1, y1 int) {

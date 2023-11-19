@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
@@ -46,28 +47,44 @@ func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 }
 
 type Code struct {
-	title string
-	code  string
-	edit  bool
+	id     string
+	title  string
+	secret string
+	edit   bool
+	input  *widget.Editor
+	ctrl   *Controller
 
 	delete widget.Clickable
 }
 
-func (c Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (c *Code) initInput() {
+	if c.edit && c.input == nil {
+		c.input = &widget.Editor{SingleLine: true, Submit: true}
+		c.input.SetText(c.title)
+	}
+}
+
+func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	c.processEvent(gtx)
+	c.initInput()
+	c.onSubmit(gtx)
 
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return Background{Color: color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF}}.Layout(gtx,
 			func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.UniformInset(10).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return material.Label(th, unit.Sp(18), "Title").Layout(gtx)
+						if c.edit {
+							return material.Editor(th, c.input, "").Layout(gtx)
+						}
+						return material.Label(th, unit.Sp(18), c.title).Layout(gtx)
 					})
 				}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{
 						Bottom: unit.Dp(10),
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-							code := tryGetFA(c.code)
+							code := tryGetFA(c.secret)
 							label := material.Label(th, unit.Sp(32), code)
 							label.Color = codeColorGradient()
 							return label.Layout(gtx)
@@ -95,6 +112,28 @@ func (c Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return dims
 }
 
+func (c *Code) processEvent(gtx layout.Context) {
+	if c.delete.Clicked() {
+		fmt.Println("delete", c.id)
+		storage.DeleteCode(c.id)
+		c.ctrl.cv.valid = false
+	}
+}
+
+func (c *Code) onSubmit(gtx layout.Context) {
+	if c.input == nil {
+		return
+	}
+	for _, event := range c.input.Events() {
+		switch e := event.(type) {
+		case widget.SubmitEvent:
+			c.input = &widget.Editor{SingleLine: true, Submit: true}
+			c.input.SetText(e.Text)
+			return
+		}
+	}
+}
+
 type CodeView struct {
 	list layout.List
 	edit widget.Clickable
@@ -112,7 +151,7 @@ func newCodeView() CodeView {
 
 func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
 	if !cv.valid {
-		cv.reloadCodes()
+		cv.reloadCodes(ctrl)
 	}
 
 	btnColor := color.NRGBA{R: 0xDD, G: 0xDD, B: 0xDD, A: 0xFF}
@@ -124,7 +163,7 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 	}
 
 	if len(cv.cells) > 0 {
-		op.InvalidateOp{At: time.Now().Add(time.Second)}.Add(gtx.Ops)
+		op.InvalidateOp{At: time.Now().Add(time.Second * 5)}.Add(gtx.Ops)
 	}
 
 	if cv.edit.Clicked() {
@@ -137,6 +176,9 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 	}
 
 	cv.list.Layout(gtx, len(cv.cells), func(gtx layout.Context, index int) layout.Dimensions {
+		if cell, ok := cv.cells[index].(*Code); ok {
+			cell.edit = cv.isEdit
+		}
 		return cv.cells[index].Layout(gtx, th)
 	})
 
@@ -154,11 +196,11 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 	}
 }
 
-func (cv *CodeView) reloadCodes() {
+func (cv *CodeView) reloadCodes(ctrl *Controller) {
 	codes := storage.LoadCodes()
 	var cells []Cell
 	for _, v := range codes {
-		cells = append(cells, Code{title: v.Name, code: v.Secret.Val()})
+		cells = append(cells, &Code{id: v.ID, title: v.Name, secret: v.Secret.Val(), ctrl: ctrl})
 	}
 	if cv.isEdit {
 		cells = append(cells, cv.cells[len(cv.cells)-1])
@@ -181,9 +223,9 @@ var codeColorGradient = func() func() color.NRGBA {
 			Build()
 		return grad
 	}()
-	colors := gradient.ColorfulColors(30)
+	colors := gradient.ColorfulColors(6)
 	return func() color.NRGBA {
-		c := colors[time.Now().Second()%30]
+		c := colors[time.Now().Second()%30/5]
 		r, g, b := c.R*math.MaxUint8, c.G*math.MaxUint8, c.B*math.MaxUint8
 		return color.NRGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: 0xFF}
 	}

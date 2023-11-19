@@ -15,6 +15,8 @@ github.com/go-text/typesetting v0.0.0-20231113130822-cf4b5dada737 h1:f3RLpvFfXcw
 github.com/go-text/typesetting v0.0.0-20231113130822-cf4b5dada737/go.mod h1:evDBbvNR/KaVFZ2ZlDSOWWXIUKq0wCOEtzLxRM8SG3k=
 github.com/go-text/typesetting-utils v0.0.0-20230616150549-2a7df14b6a22 h1:LBQTFxP2MfsyEDqSKmUBZaDuDHN1vpqDyOZjcqS7MYI=
 github.com/go-text/typesetting-utils v0.0.0-20230616150549-2a7df14b6a22/go.mod h1:DDxDdQEnB70R8owOx3LVpEFvpMK9eeH1o2r0yZhFI9o=
+github.com/google/uuid v1.4.0 h1:MtMxsa51/r9yyhkyLsVeVt0B+BGQZzpQiTQ4eHZ8bc4=
+github.com/google/uuid v1.4.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/inkeliz/giosvg v0.0.0-20230915151051-c8ae55d003c6 h1:FkoeJj580Z+6QQLI6vEZwWFOtK3TiwkfvlIdkXxp0zg=
 github.com/inkeliz/giosvg v0.0.0-20230915151051-c8ae55d003c6/go.mod h1:9cMSIlqFpG0OLzPNsUf/l+j7Icbs5nbxln/Ez0q6S94=
 github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=

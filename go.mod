@@ -6,6 +6,7 @@ require (
 	gioui.org v0.3.1
 	gioui.org/x v0.3.2
 	github.com/denisbrodbeck/machineid v1.0.1
+	github.com/google/uuid v1.4.0
 	github.com/inkeliz/giosvg v0.0.0-20230915151051-c8ae55d003c6
 	github.com/mazznoer/colorgrad v0.9.1
 	github.com/xlzd/gotp v0.1.0

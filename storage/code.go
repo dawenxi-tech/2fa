@@ -2,13 +2,17 @@ package storage
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/google/uuid"
 	"log/slog"
 	"net/url"
 	"os"
+	"slices"
 	"strings"
 )
 
 type Code struct {
+	ID        string       `json:"id"`
 	Type      string       `json:"type"`
 	Name      string       `json:"name"`
 	Algorithm string       `json:"algorithm"`
@@ -19,12 +23,17 @@ type Code struct {
 }
 
 func ParseCode(rawUri string) (*Code, error) {
+	if !strings.Contains(rawUri, "://") {
+		return nil, errors.New("invalid code uri")
+	}
 	uri, err := url.Parse(rawUri)
 	if err != nil {
 		return nil, err
 	}
 	value := uri.Query()
+	id, _ := uuid.NewUUID()
 	code := &Code{
+		ID:        id.String(),
 		Type:      uri.Hostname(),
 		Name:      strings.TrimPrefix(uri.Path, "/"),
 		Algorithm: value.Get("algorithm"),
@@ -86,4 +95,43 @@ func SaveCode(codes Codes) {
 		slog.Error("error to write codes", slog.Any("err", err))
 		return
 	}
+}
+
+func UpdateCodeName(id string, name string) {
+	codes := LoadCodes()
+	for i, c := range codes {
+		if c.ID == id {
+			codes[i].Name = name
+			SaveCode(codes)
+			break
+		}
+	}
+}
+
+func InsertCode(secretOrUri string) {
+	code, _ := ParseCode(secretOrUri)
+	if code == nil {
+		id, _ := uuid.NewUUID()
+		code = &Code{
+			ID:        id.String(),
+			Type:      "totp",
+			Name:      "Unnamed",
+			Algorithm: "",
+			Digits:    "",
+			Issuer:    "",
+			Period:    "",
+			Secret:    NewEncryptData(secretOrUri),
+		}
+	}
+	codes := LoadCodes()
+	codes = append(codes, *code)
+	SaveCode(codes)
+}
+
+func DeleteCode(id string) {
+	codes := LoadCodes()
+	codes = slices.DeleteFunc(codes, func(c Code) bool {
+		return c.ID == id
+	})
+	SaveCode(codes)
 }
