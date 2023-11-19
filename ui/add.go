@@ -22,8 +22,8 @@ type AddView struct {
 	cancelBtn *widget.Clickable
 }
 
-func newAddView() AddView {
-	av := AddView{
+func newAddView() *AddView {
+	av := &AddView{
 		applyBtn:  &widget.Clickable{},
 		codeInput: &component.TextField{CharLimit: 2048},
 		cancelBtn: &widget.Clickable{},
@@ -77,11 +77,7 @@ func (av AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 		if secret := parseCodeOrUri(code); secret == "" {
 			return
 		}
-
 		storage.InsertCode(code)
-
-		ctrl.cv.valid = false
-		ctrl.cv.isEdit = false
 		ctrl.page = PageCode
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
@@ -92,7 +88,8 @@ func (av AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 }
 
 func parseCodeOrUri(codeOrUri string) (secret string) {
-	if strings.TrimSpace(codeOrUri) == "" {
+	codeOrUri = strings.TrimSpace(codeOrUri)
+	if codeOrUri == "" {
 		return ""
 	}
 	secret = codeOrUri

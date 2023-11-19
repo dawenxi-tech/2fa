@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"gioui.org/io/clipboard"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -12,6 +11,7 @@ import (
 	"github.com/mazznoer/colorgrad"
 	"image/color"
 	"math"
+	"slices"
 	"time"
 )
 
@@ -50,7 +50,7 @@ func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 type Code struct {
 	click  widget.Clickable
 	id     string
-	title  string
+	name   string
 	secret string
 	edit   bool
 	input  *widget.Editor
@@ -62,7 +62,7 @@ type Code struct {
 func (c *Code) initInput() {
 	if c.edit && c.input == nil {
 		c.input = &widget.Editor{SingleLine: true, Submit: true}
-		c.input.SetText(c.title)
+		c.input.SetText(c.name)
 	}
 }
 
@@ -72,7 +72,7 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	c.onSubmit(gtx)
 
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return material.ButtonLayoutStyle{
+		return ButtonLayoutStyle{
 			CornerRadius: 4,
 			Background:   color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF},
 			Button:       &c.click,
@@ -82,7 +82,7 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 					if c.edit {
 						return material.Editor(th, c.input, "").Layout(gtx)
 					}
-					return material.Label(th, unit.Sp(18), c.title).Layout(gtx)
+					return material.Label(th, unit.Sp(18), c.name).Layout(gtx)
 				})
 			}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Inset{
@@ -97,28 +97,6 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 				})
 			}))
 		})
-		//return Background{Color: color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF}}.Layout(gtx,
-		//	func(gtx layout.Context) layout.Dimensions {
-		//		return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		//			return layout.UniformInset(10).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		//				if c.edit {
-		//					return material.Editor(th, c.input, "").Layout(gtx)
-		//				}
-		//				return material.Label(th, unit.Sp(18), c.title).Layout(gtx)
-		//			})
-		//		}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		//			return layout.Inset{
-		//				Bottom: unit.Dp(10),
-		//			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		//				return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		//					code := tryGetFA(c.secret)
-		//					label := material.Label(th, unit.Sp(32), code)
-		//					label.Color = codeColorGradient()
-		//					return label.Layout(gtx)
-		//				})
-		//			})
-		//		}))
-		//	})
 	})
 
 	if !c.edit {
@@ -141,9 +119,8 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 func (c *Code) processEvent(gtx layout.Context) {
 	if c.delete.Clicked() {
-		fmt.Println("delete", c.id)
-		storage.DeleteCode(c.id)
-		c.ctrl.cv.valid = false
+		c.ctrl.cv.deleteId = c.id
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 	if c.click.Clicked() {
 		// copy code
@@ -159,6 +136,7 @@ func (c *Code) onSubmit(gtx layout.Context) {
 	for _, event := range c.input.Events() {
 		switch e := event.(type) {
 		case widget.SubmitEvent:
+			c.name = e.Text
 			c.input = &widget.Editor{SingleLine: true, Submit: true}
 			c.input.SetText(e.Text)
 			return
@@ -175,17 +153,21 @@ type CodeView struct {
 	isEdit bool
 	valid  bool
 
-	cells []Cell
+	cells    []Cell
+	deleteId string
 }
 
-func newCodeView() CodeView {
+func newCodeView() *CodeView {
 	list := layout.List{Axis: layout.Vertical, Alignment: layout.Middle}
-	return CodeView{list: list, edit: widget.Clickable{}}
+	return &CodeView{list: list, edit: widget.Clickable{}}
 }
 
 func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
 	if !cv.valid {
 		cv.reloadCodes(ctrl)
+	} else if cv.deleteId != "" {
+		cv.deleteCell(cv.deleteId)
+		cv.deleteId = ""
 	}
 
 	if len(cv.cells) > 0 {
@@ -199,6 +181,19 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 		} else {
 			cv.cells = cv.cells[:len(cv.cells)-1]
 		}
+	}
+
+	if cv.ok.Clicked() {
+		cv.isEdit = false
+		cv.syncCode()
+		cv.valid = false
+		op.InvalidateOp{}.Add(gtx.Ops)
+	}
+
+	if cv.cancel.Clicked() {
+		cv.isEdit = false
+		cv.valid = false
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
 	cv.list.Layout(gtx, len(cv.cells), func(gtx layout.Context, index int) layout.Dimensions {
@@ -242,7 +237,7 @@ func (cv *CodeView) reloadCodes(ctrl *Controller) {
 	codes := storage.LoadCodes()
 	var cells []Cell
 	for _, v := range codes {
-		cells = append(cells, &Code{id: v.ID, title: v.Name, secret: v.Secret.Val(), ctrl: ctrl})
+		cells = append(cells, &Code{id: v.ID, name: v.Name, secret: v.Secret.Val(), ctrl: ctrl})
 	}
 	if cv.isEdit {
 		cells = append(cells, cv.cells[len(cv.cells)-1])
@@ -251,11 +246,23 @@ func (cv *CodeView) reloadCodes(ctrl *Controller) {
 	cv.valid = true
 }
 
-func _cond[T any](trueOrFalse bool, trueValue T, falseValue T) T {
-	if trueOrFalse {
-		return trueValue
+func (cv *CodeView) deleteCell(id string) {
+	cv.cells = slices.DeleteFunc(cv.cells, func(cell Cell) bool {
+		if v, ok := cell.(*Code); ok {
+			return v.id == id
+		}
+		return false
+	})
+}
+
+func (cv *CodeView) syncCode() {
+	var codes []storage.Code
+	for _, cell := range cv.cells {
+		if v, ok := cell.(*Code); ok {
+			codes = append(codes, storage.Code{ID: v.id, Name: v.name})
+		}
 	}
-	return falseValue
+	storage.SyncCode(codes)
 }
 
 var codeColorGradient = func() func() color.NRGBA {

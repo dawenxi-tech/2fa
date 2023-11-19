@@ -108,7 +108,23 @@ func UpdateCodeName(id string, name string) {
 	}
 }
 
+func SyncCode(cs []Code) {
+	codes := LoadCodes()
+	result := make([]Code, 0, len(cs))
+	for _, v := range codes {
+		idx := slices.IndexFunc(cs, func(code Code) bool {
+			return code.ID == v.ID
+		})
+		if idx >= 0 {
+			v.Name = cs[idx].Name
+			result = append(result, v)
+		}
+	}
+	SaveCode(result)
+}
+
 func InsertCode(secretOrUri string) {
+	secretOrUri = strings.TrimSpace(secretOrUri)
 	code, _ := ParseCode(secretOrUri)
 	if code == nil {
 		id, _ := uuid.NewUUID()

@@ -22,8 +22,8 @@ type Controller struct {
 
 	page Page
 
-	av AddView
-	cv CodeView
+	av *AddView
+	cv *CodeView
 
 	click widget.Clickable
 }
@@ -46,8 +46,16 @@ func (ctrl *Controller) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 	switch ctrl.page {
 	case PageCode:
+		if ctrl.cv == nil {
+			ctrl.cv = newCodeView()
+		}
+		ctrl.av = nil
 		ctrl.cv.Layout(gtx, th, ctrl)
 	case PageAdd:
+		if ctrl.av == nil {
+			ctrl.av = newAddView()
+		}
+		ctrl.cv = nil
 		ctrl.av.Layout(gtx, th, ctrl)
 	case PageSettings:
 
