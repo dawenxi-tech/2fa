@@ -66,7 +66,7 @@ type Codes []Code
 
 func LoadCodes() Codes {
 	var code Codes
-	data, err := os.ReadFile(codePath())
+	data, err := os.ReadFile(codePath)
 	if err != nil {
 		slog.Error("error to read code file", slog.Any("err", err))
 		return nil
@@ -85,7 +85,7 @@ func SaveCode(codes Codes) {
 		slog.Error("error to marsha codes", slog.Any("err", err))
 		return
 	}
-	fp, err := os.Create(codePath())
+	fp, err := os.Create(codePath)
 	if err != nil {
 		slog.Error("error to create file", slog.Any("err", err))
 		return
