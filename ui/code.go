@@ -71,12 +71,14 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	c.initInput()
 	c.onSubmit(gtx)
 
+	backgroundColor := color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF}
+	layoutFn := ButtonLayoutStyle{CornerRadius: 4, Background: backgroundColor, Button: &c.click}.Layout
+	if c.edit {
+		layoutFn = Background{backgroundColor}.Layout
+	}
+
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return ButtonLayoutStyle{
-			CornerRadius: 4,
-			Background:   color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF},
-			Button:       &c.click,
-		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layoutFn(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.UniformInset(10).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					if c.edit {
