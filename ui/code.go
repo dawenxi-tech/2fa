@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"gioui.org/io/clipboard"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
@@ -47,6 +48,7 @@ func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 }
 
 type Code struct {
+	click  widget.Clickable
 	id     string
 	title  string
 	secret string
@@ -70,28 +72,53 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	c.onSubmit(gtx)
 
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return Background{Color: color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF}}.Layout(gtx,
-			func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return layout.UniformInset(10).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						if c.edit {
-							return material.Editor(th, c.input, "").Layout(gtx)
-						}
-						return material.Label(th, unit.Sp(18), c.title).Layout(gtx)
+		return material.ButtonLayoutStyle{
+			CornerRadius: 4,
+			Background:   color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF},
+			Button:       &c.click,
+		}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.UniformInset(10).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					if c.edit {
+						return material.Editor(th, c.input, "").Layout(gtx)
+					}
+					return material.Label(th, unit.Sp(18), c.title).Layout(gtx)
+				})
+			}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{
+					Bottom: unit.Dp(10),
+				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						code := tryGetFA(c.secret)
+						label := material.Label(th, unit.Sp(32), code)
+						label.Color = codeColorGradient()
+						return label.Layout(gtx)
 					})
-				}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return layout.Inset{
-						Bottom: unit.Dp(10),
-					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-							code := tryGetFA(c.secret)
-							label := material.Label(th, unit.Sp(32), code)
-							label.Color = codeColorGradient()
-							return label.Layout(gtx)
-						})
-					})
-				}))
-			})
+				})
+			}))
+		})
+		//return Background{Color: color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF}}.Layout(gtx,
+		//	func(gtx layout.Context) layout.Dimensions {
+		//		return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		//			return layout.UniformInset(10).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		//				if c.edit {
+		//					return material.Editor(th, c.input, "").Layout(gtx)
+		//				}
+		//				return material.Label(th, unit.Sp(18), c.title).Layout(gtx)
+		//			})
+		//		}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		//			return layout.Inset{
+		//				Bottom: unit.Dp(10),
+		//			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		//				return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		//					code := tryGetFA(c.secret)
+		//					label := material.Label(th, unit.Sp(32), code)
+		//					label.Color = codeColorGradient()
+		//					return label.Layout(gtx)
+		//				})
+		//			})
+		//		}))
+		//	})
 	})
 
 	if !c.edit {
@@ -118,6 +145,11 @@ func (c *Code) processEvent(gtx layout.Context) {
 		storage.DeleteCode(c.id)
 		c.ctrl.cv.valid = false
 	}
+	if c.click.Clicked() {
+		// copy code
+		code := tryGetFA(c.secret)
+		clipboard.WriteOp{Text: code}.Add(gtx.Ops)
+	}
 }
 
 func (c *Code) onSubmit(gtx layout.Context) {
@@ -135,8 +167,10 @@ func (c *Code) onSubmit(gtx layout.Context) {
 }
 
 type CodeView struct {
-	list layout.List
-	edit widget.Clickable
+	list   layout.List
+	edit   widget.Clickable
+	ok     widget.Clickable
+	cancel widget.Clickable
 
 	isEdit bool
 	valid  bool
@@ -152,14 +186,6 @@ func newCodeView() CodeView {
 func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
 	if !cv.valid {
 		cv.reloadCodes(ctrl)
-	}
-
-	btnColor := color.NRGBA{R: 0xDD, G: 0xDD, B: 0xDD, A: 0xFF}
-	if cv.edit.Hovered() {
-		btnColor = color.NRGBA{G: 0xFF, A: 0xFF}
-	}
-	if cv.edit.Pressed() {
-		btnColor = color.NRGBA{R: 0xFF, A: 0xFF}
 	}
 
 	if len(cv.cells) > 0 {
@@ -182,15 +208,31 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 		return cv.cells[index].Layout(gtx, th)
 	})
 
-	layout.SE.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			gtx.Constraints.Max.X = 60
-			return cv.edit.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return editIcon.Layout(gtx, btnColor)
+	if cv.isEdit {
+		layout.SE.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{
+					Right:  unit.Dp(20),
+					Bottom: unit.Dp(20),
+				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return IconButton{size: 60}.Layout(gtx, okIcon, &cv.ok)
+				})
+			}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{
+					Right:  unit.Dp(20),
+					Bottom: unit.Dp(20),
+				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return IconButton{size: 60}.Layout(gtx, cancelIcon, &cv.cancel)
+				})
+			}))
+		})
+	} else {
+		layout.SE.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return IconButton{size: 60}.Layout(gtx, editIcon, &cv.edit)
 			})
 		})
-	})
-
+	}
 	return layout.Dimensions{
 		Size: gtx.Constraints.Max,
 	}

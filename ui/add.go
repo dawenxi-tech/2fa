@@ -17,24 +17,18 @@ import (
 )
 
 type AddView struct {
-	editor    *widget.Editor
 	codeInput *component.TextField
 	applyBtn  *widget.Clickable
 	cancelBtn *widget.Clickable
 }
 
 func newAddView() AddView {
-	editor := &widget.Editor{
-		SingleLine: true,
-	}
-
 	av := AddView{
-		editor:    editor,
 		applyBtn:  &widget.Clickable{},
-		codeInput: &component.TextField{},
+		codeInput: &component.TextField{CharLimit: 2048},
 		cancelBtn: &widget.Clickable{},
 	}
-
+	av.codeInput.Editor.SingleLine = true
 	return av
 }
 

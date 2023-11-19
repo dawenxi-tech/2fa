@@ -15,10 +15,12 @@ func loadIcon(data []byte) *widget.Icon {
 
 var closeIcon = loadIcon(icon.Close)
 
-var addIcon = loadIcon(icon.AddBordered)
-
 var circleIcon = loadIcon(icon.Circle)
 
 var editIcon = loadIcon(icon.Edit)
 
 var deleteIcon = loadIcon(icon.Delete)
+
+var okIcon = loadIcon(icon.Ok)
+
+var cancelIcon = loadIcon(icon.Cancel)
