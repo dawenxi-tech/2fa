@@ -7,7 +7,10 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/dawenxi-tech/2fa/storage"
+	"github.com/mazznoer/colorgrad"
 	"image/color"
+	"math"
+	"time"
 )
 
 type Cell interface {
@@ -21,8 +24,6 @@ type AddCode struct {
 
 func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if add.click.Clicked() {
-		// goto add view
-		//fmt.Println("go to add view")
 		add.ctrl.page = PageAdd
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
@@ -67,7 +68,9 @@ func (c Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 							code := tryGetFA(c.code)
-							return material.Label(th, unit.Sp(32), code).Layout(gtx)
+							label := material.Label(th, unit.Sp(32), code)
+							label.Color = codeColorGradient()
+							return label.Layout(gtx)
 						})
 					})
 				}))
@@ -120,6 +123,10 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 		btnColor = color.NRGBA{R: 0xFF, A: 0xFF}
 	}
 
+	if len(cv.cells) > 0 {
+		op.InvalidateOp{At: time.Now().Add(time.Second)}.Add(gtx.Ops)
+	}
+
 	if cv.edit.Clicked() {
 		cv.isEdit = !cv.isEdit
 		if cv.isEdit {
@@ -166,3 +173,18 @@ func _cond[T any](trueOrFalse bool, trueValue T, falseValue T) T {
 	}
 	return falseValue
 }
+
+var codeColorGradient = func() func() color.NRGBA {
+	var gradient = func() colorgrad.Gradient {
+		grad, _ := colorgrad.NewGradient().
+			HtmlColors("#00FF00", "#FF0000").
+			Build()
+		return grad
+	}()
+	colors := gradient.ColorfulColors(30)
+	return func() color.NRGBA {
+		c := colors[time.Now().Second()%30]
+		r, g, b := c.R*math.MaxUint8, c.G*math.MaxUint8, c.B*math.MaxUint8
+		return color.NRGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: 0xFF}
+	}
+}()
