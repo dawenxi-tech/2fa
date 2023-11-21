@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"bytes"
+	"fmt"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -10,9 +12,14 @@ import (
 	"gioui.org/widget/material"
 	"gioui.org/x/component"
 	"github.com/dawenxi-tech/2fa/storage"
+	"github.com/dim13/otpauth/migration"
+	"github.com/makiuchi-d/gozxing"
+	"github.com/makiuchi-d/gozxing/qrcode"
 	"github.com/xlzd/gotp"
+	"golang.design/x/clipboard"
 	"image"
 	"image/color"
+	"log/slog"
 	"strings"
 )
 
@@ -20,6 +27,10 @@ type AddView struct {
 	codeInput *component.TextField
 	applyBtn  *widget.Clickable
 	cancelBtn *widget.Clickable
+
+	codes  []string
+	imag   image.Image
+	isRead bool
 }
 
 func newAddView() *AddView {
@@ -32,14 +43,36 @@ func newAddView() *AddView {
 	return av
 }
 
-func (av AddView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
-
+func (av *AddView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
+	if !av.isRead {
+		av.tryReadClipboard()
+		av.isRead = true
+	}
 	av.processEvents(gtx, ctrl)
+	if len(av.codes) == 0 && av.imag != nil {
+		return av.layoutQR(gtx, th, ctrl)
+	} else {
+		return av.layoutTextField(gtx, th, ctrl)
+	}
+}
 
+func (av *AddView) layoutQR(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
+
+	layout.Flex{}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		return widget.Image{
+			Src: paint.NewImageOp(av.imag),
+			Fit: widget.Contain,
+		}.Layout(gtx)
+	}))
+
+	return layout.Dimensions{
+		Size: gtx.Constraints.Max,
+	}
+}
+
+func (av *AddView) layoutTextField(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
 	txt := av.codeInput.Text()
-
 	code := tryGetFA(txt)
-
 	layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{
 			Axis:      layout.Vertical,
@@ -65,13 +98,64 @@ func (av AddView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controlle
 		}),
 		)
 	})
-
 	return layout.Dimensions{
 		Size: gtx.Constraints.Max,
 	}
 }
 
-func (av AddView) processEvents(gtx layout.Context, ctrl *Controller) {
+func (av *AddView) tryReadClipboard() {
+	// read clipboard image format
+	data := clipboard.Read(clipboard.FmtImage)
+	if len(data) == 0 {
+		return
+	}
+	img, _, err := image.Decode(bytes.NewBuffer(data))
+	if err != nil {
+		slog.With(slog.Any("err", err)).Error("error to decode image")
+		return
+	}
+	// prepare BinaryBitmap
+	bmp, err := gozxing.NewBinaryBitmapFromImage(img)
+	if err != nil {
+		slog.With(slog.Any("err", err)).Error("error to prepare zxing")
+		return
+	}
+	// decode image
+	qrReader := qrcode.NewQRCodeReader()
+	result, err := qrReader.Decode(bmp, nil)
+	if err != nil {
+		slog.With(slog.Any("err", err)).Error("error to decode image")
+		return
+	}
+
+	fmt.Println("result", result)
+	av.tryParseCode(result.GetText())
+	if len(av.codes) > 0 {
+		av.imag = img
+	}
+}
+
+func (av *AddView) tryParseCode(txt string) {
+	// try get 2fa
+	if isCodeUriValid(txt) {
+		av.codes = []string{txt}
+	}
+	// try decode google uri
+	data, err := migration.Data(txt)
+	if err != nil {
+		return
+	}
+	codes := strings.Split(string(data), "\n")
+	if len(codes) == 0 {
+		return
+	}
+	if !isCodeUriValid(codes[0]) {
+		return
+	}
+	av.codes = codes
+}
+
+func (av *AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 	if av.applyBtn.Clicked() {
 		code := av.codeInput.Text()
 		if secret := parseCodeOrUri(code); secret == "" {
@@ -85,6 +169,15 @@ func (av AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 		ctrl.page = PageCode
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
+}
+
+func isCodeUriValid(uri string) bool {
+	parsed, _ := storage.ParseCode(uri)
+	if parsed == nil {
+		return false
+	}
+	secret := parseCodeOrUri(parsed.Secret.Val())
+	return secret != ""
 }
 
 func parseCodeOrUri(codeOrUri string) (secret string) {
