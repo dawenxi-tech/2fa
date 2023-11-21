@@ -2,7 +2,6 @@ package ui
 
 import (
 	"bytes"
-	"fmt"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -49,7 +48,7 @@ func (av *AddView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controll
 		av.isRead = true
 	}
 	av.processEvents(gtx, ctrl)
-	if len(av.codes) == 0 && av.imag != nil {
+	if len(av.codes) > 0 && av.imag != nil {
 		return av.layoutQR(gtx, th, ctrl)
 	} else {
 		return av.layoutTextField(gtx, th, ctrl)
@@ -58,12 +57,43 @@ func (av *AddView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controll
 
 func (av *AddView) layoutQR(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
 
-	layout.Flex{}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		return widget.Image{
-			Src: paint.NewImageOp(av.imag),
-			Fit: widget.Contain,
-		}.Layout(gtx)
+	var flexes []layout.FlexChild
+	flexes = append(flexes, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		return layout.Inset{Top: 20}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				gtx.Constraints.Min.X = 400
+				gtx.Constraints.Max.X = 400
+				return widget.Image{
+					Src: paint.NewImageOp(av.imag),
+					Fit: widget.Contain,
+				}.Layout(gtx)
+			})
+		})
 	}))
+
+	for _, c := range av.codes {
+		code := tryGetFA(c)
+		flexes = append(flexes, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return material.Label(th, 20, code).Layout(gtx)
+				})
+			})
+		}))
+	}
+	flexes = append(flexes, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Min.X = gtx.Constraints.Max.X
+			return material.Button(th, av.applyBtn, "ADD").Layout(gtx)
+		})
+	}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Min.X = gtx.Constraints.Max.X
+			return material.Button(th, av.cancelBtn, "CANCEL").Layout(gtx)
+		})
+	}))
+
+	layout.Flex{Axis: layout.Vertical}.Layout(gtx, flexes...)
 
 	return layout.Dimensions{
 		Size: gtx.Constraints.Max,
@@ -128,7 +158,6 @@ func (av *AddView) tryReadClipboard() {
 		return
 	}
 
-	fmt.Println("result", result)
 	av.tryParseCode(result.GetText())
 	if len(av.codes) > 0 {
 		av.imag = img
@@ -139,44 +168,63 @@ func (av *AddView) tryParseCode(txt string) {
 	// try get 2fa
 	if isCodeUriValid(txt) {
 		av.codes = []string{txt}
+		return
 	}
 	// try decode google uri
-	data, err := migration.Data(txt)
+	av.tryParseGoogleAuthenticatorAppExportQr(txt)
+}
+
+func (av *AddView) tryParseGoogleAuthenticatorAppExportQr(qr string) {
+	data, err := migration.Data(qr)
 	if err != nil {
 		return
 	}
-	codes := strings.Split(string(data), "\n")
-	if len(codes) == 0 {
+	param, err := migration.Unmarshal(data)
+	if err != nil {
 		return
 	}
-	if !isCodeUriValid(codes[0]) {
-		return
+	var codes []string
+	for _, p := range param.OtpParameters {
+		uri := p.URL()
+		if uri != nil {
+			codes = append(codes, uri.String())
+		}
 	}
 	av.codes = codes
 }
 
 func (av *AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 	if av.applyBtn.Clicked() {
-		code := av.codeInput.Text()
-		if secret := parseCodeOrUri(code); secret == "" {
-			return
+		if len(av.codes) > 0 {
+			for _, code := range av.codes {
+				if !isCodeUriValid(code) {
+					continue
+				}
+				storage.InsertCode(code)
+			}
+		} else {
+			code := av.codeInput.Text()
+			if !isCodeUriValid(code) {
+				return
+			}
+			storage.InsertCode(code)
 		}
-		storage.InsertCode(code)
 		ctrl.page = PageCode
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 	if av.cancelBtn.Clicked() {
+		if len(av.codes) > 0 {
+			av.codes = nil
+			op.InvalidateOp{}.Add(gtx.Ops)
+			return
+		}
 		ctrl.page = PageCode
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 }
 
 func isCodeUriValid(uri string) bool {
-	parsed, _ := storage.ParseCode(uri)
-	if parsed == nil {
-		return false
-	}
-	secret := parseCodeOrUri(parsed.Secret.Val())
+	secret := parseCodeOrUri(uri)
 	return secret != ""
 }
 
