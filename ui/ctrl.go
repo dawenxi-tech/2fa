@@ -30,7 +30,7 @@ type Controller struct {
 
 func newController() *Controller {
 	return &Controller{
-		page: PageAdd,
+		page: PageCode,
 		av:   newAddView(),
 		cv:   newCodeView(),
 	}
