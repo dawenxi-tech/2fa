@@ -2,7 +2,7 @@
 macos:
 	mkdir -p dist/release/macos
 	rm -rf dist/release/macos
-	go build -tags='RELEASE' -o dist/release/macos/2fa github.com/dawenxi-tech/2fa
+	GOOS=darwin GOARCH=arm64 go build -tags='RELEASE' -o dist/release/macos/2fa github.com/dawenxi-tech/2fa
 	go run cmd/macapp/macapp.go -assets ./dist/release/macos \
                                 		-bin 2fa \
                                 		-icon ./assets/2fa.png \
