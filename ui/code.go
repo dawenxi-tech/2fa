@@ -29,6 +29,7 @@ func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 		add.ctrl.page = PageAdd
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
+	var c = color.NRGBA{R: 0x81, G: 0x81, B: 0x81, A: 0xFF}
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return add.click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return Background{Color: color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF}}.Layout(gtx,
@@ -38,7 +39,15 @@ func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 							Top:    unit.Dp(40),
 							Bottom: unit.Dp(40),
 						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-							return material.Label(th, unit.Sp(32), "ADD CODE").Layout(gtx)
+							return layout.Flex{Alignment: layout.Middle}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								return layout.Inset{Right: unit.Dp(10)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+									return addIcon.Layout(gtx, c)
+								})
+							}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								label := material.Label(th, unit.Sp(20), "ADD CODE")
+								label.Color = c
+								return label.Layout(gtx)
+							}))
 						})
 					})
 				})
@@ -151,6 +160,7 @@ type CodeView struct {
 	edit   widget.Clickable
 	ok     widget.Clickable
 	cancel widget.Clickable
+	add    widget.Clickable
 
 	isEdit bool
 	valid  bool
@@ -176,6 +186,11 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 		op.InvalidateOp{At: time.Now().Add(time.Second * 5)}.Add(gtx.Ops)
 	}
 
+	if cv.add.Clicked() {
+		ctrl.page = PageAdd
+		op.InvalidateOp{}.Add(gtx.Ops)
+	}
+
 	if cv.edit.Clicked() {
 		cv.isEdit = !cv.isEdit
 		if cv.isEdit {
@@ -198,12 +213,14 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
-	cv.list.Layout(gtx, len(cv.cells), func(gtx layout.Context, index int) layout.Dimensions {
-		if cell, ok := cv.cells[index].(*Code); ok {
-			cell.edit = cv.isEdit
-		}
-		return cv.cells[index].Layout(gtx, th)
-	})
+	if len(cv.cells) > 0 {
+		cv.list.Layout(gtx, len(cv.cells), func(gtx layout.Context, index int) layout.Dimensions {
+			if cell, ok := cv.cells[index].(*Code); ok {
+				cell.edit = cv.isEdit
+			}
+			return cv.cells[index].Layout(gtx, th)
+		})
+	}
 
 	if cv.isEdit {
 		layout.SE.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -223,10 +240,30 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 				})
 			}))
 		})
-	} else {
+	} else if len(cv.cells) > 0 {
 		layout.SE.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return IconButton{size: 60}.Layout(gtx, editIcon, &cv.edit)
+			})
+		})
+	} else {
+		var c = color.NRGBA{R: 0x81, G: 0x81, B: 0x81, A: 0xFF}
+		return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return cv.add.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Inset{
+					Top:    unit.Dp(40),
+					Bottom: unit.Dp(40),
+				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Alignment: layout.Middle}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return layout.Inset{Right: unit.Dp(10)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							return addIcon.Layout(gtx, c)
+						})
+					}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						label := material.Label(th, unit.Sp(20), "ADD CODE")
+						label.Color = c
+						return label.Layout(gtx)
+					}))
+				})
 			})
 		})
 	}

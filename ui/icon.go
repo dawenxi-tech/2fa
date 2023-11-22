@@ -24,3 +24,5 @@ var deleteIcon = loadIcon(icon.Delete)
 var okIcon = loadIcon(icon.Ok)
 
 var cancelIcon = loadIcon(icon.Cancel)
+
+var addIcon = loadIcon(icon.Add)
