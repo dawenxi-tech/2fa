@@ -1,7 +1,11 @@
 
+
 APP_NAME="2FA"
 BUNDLE_ID="tech.dawenxi.2fa"
 DIR_RELEASE="./dist/release"
+
+# overridew as needed
+include env.mk
 
 macos: macos-app macos-dmg
 
