@@ -8,3 +8,4 @@ env-print:
 	@echo "PP_NAME:       $(PP_NAME)"
 	@echo "BUNDLE_ID:     $(BUNDLE_ID)"
 	@echo "DIR_RELEASE:   $(DIR_RELEASE)"
+	@echo "APP_ICON:      $(APP_ICON)"
