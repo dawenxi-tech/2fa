@@ -3,9 +3,32 @@
 APP_NAME="2FA"
 BUNDLE_ID="tech.dawenxi.2fa"
 DIR_RELEASE="./dist/release"
+APP_ICON=./assets-backup/2fa.png
 
-# overridew as needed
+# override the above environment varaibles as needed
 include env.mk
+
+dep-tools:
+	# icns viewer
+	go install github.com/jackmordaunt/icns/cmd/preview@latest
+
+	# icns maker doing png to icns
+	go install github.com/jackmordaunt/icns/v2/cmd/icnsify@latest
+
+### Assets
+
+assets-convert:
+	# First we copy the PNG we want up to assets folder ( which the packaing uses as truth)
+	cp $(APP_ICON) ./assets/2fa.png
+
+	# Then, we do the conversion of the PNG to ICNS
+	icnsify --input ./assets/2fa.png --output ./assets/2fa.icns
+assets-preview:
+	# Lets check if the conversion worked and check the diffeerent resolutions.
+	preview $(PWD)/assets/2fa.icns
+
+
+
 
 macos: macos-app macos-dmg
 
