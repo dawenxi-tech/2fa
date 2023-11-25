@@ -9,39 +9,32 @@ package tray
 
 #include <AppKit/AppKit.h>
 
-@interface Popover : NSObject
-+(void)show:(id) obj;
+__attribute__ ((visibility ("hidden"))) void show_tray(void);
 
-@end
-
-@implementation Popover
-
-+(void)show:(NSStatusBarButton *) button
-{
-    NSViewController *vc = [[NSViewController alloc] init];
-    vc.view = [[NSView alloc] init];
-NSPopover* popover = [[NSPopover alloc]init];
-popover.behavior = NSPopoverBehaviorTransient;
-popover.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantLight];
-popover.contentViewController = vc;
-[popover showRelativeToRect:button.bounds ofView:button preferredEdge:NSRectEdgeMaxY];
+static CFTypeRef newNSString(unichar *chars, NSUInteger length) {
+	@autoreleasepool {
+		NSString *s = [NSString string];
+		if (length > 0) {
+			s = [NSString stringWithCharacters:chars length:length];
+		}
+		return CFBridgingRetain(s);
+	}
 }
 
-@end
-
-static void show_tray(void) {
-dispatch_async(dispatch_get_main_queue(), ^{
-	id delegate = [[NSApplication sharedApplication] delegate];
-	NSStatusItem* statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
-    statusItem.button.title = @"2FA";
-	id obj = [Popover class];
-    SEL mySelector = @selector(show:);
-	statusItem.button.target = obj;
-    statusItem.button.action = mySelector;
-	statusItem.visible = YES;
- 	[delegate performSelector:@selector(setStatusItem:) withObject:statusItem];
-});
+static CFTypeRef newNSArray() {
+	@autoreleasepool {
+		NSMutableArray* arr = [NSMutableArray array];
+		return CFBridgingRetain(arr);
+	}
 }
+
+static void array_add_object(CFTypeRef arr, CFTypeRef name, CFTypeRef secret) {
+	NSMutableArray*_arr = (__bridge NSMutableArray*)arr;
+	NSString*_name = (__bridge NSString*)name;
+	NSString*_secret = (__bridge NSString*)secret;
+	[_arr addObject:@{@"name": _name, @"secret": _secret}];
+}
+
 
 */
 import "C"
