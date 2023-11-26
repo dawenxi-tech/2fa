@@ -10,6 +10,7 @@ package tray
 #include <AppKit/AppKit.h>
 
 __attribute__ ((visibility ("hidden"))) void show_tray(void);
+__attribute__ ((visibility ("hidden"))) void dismiss_tray(void);
 
 static CFTypeRef newNSString(unichar *chars, NSUInteger length) {
 	@autoreleasepool {
@@ -57,6 +58,10 @@ import (
 
 func show_tray() {
 	C.show_tray()
+}
+
+func dismiss_tray() {
+	C.dismiss_tray()
 }
 
 //export export_codes

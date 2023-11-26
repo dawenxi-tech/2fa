@@ -7,6 +7,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"github.com/dawenxi-tech/2fa/storage"
 	"github.com/dawenxi-tech/2fa/tray"
 	"log"
 	"os"
@@ -30,32 +31,27 @@ func NewWin() *Window {
 }
 
 func (w *Window) Run() {
-	go func() {
-		w.win = app.NewWindow(
-			app.Decorated(false),
-			app.Title("2FA"),
-			app.MinSize(unit.Dp(_winWidth), unit.Dp(_winHeight)),
-			app.MaxSize(unit.Dp(_winWidth), unit.Dp(_winHeight)),
-			app.Size(unit.Dp(_winWidth), unit.Dp(_winHeight)),
-		)
-		w.win.Perform(system.ActionCenter)
-		if err := w.loop(); err != nil {
-			log.Fatal(err)
-		}
-		os.Exit(0)
-	}()
+
+	w.showWin()
 
 	go func() {
 		time.Sleep(time.Second * 2)
-		tray.ShowTray()
+		w.showTray()
 	}()
 
 	app.Main()
 }
 
+func (w *Window) showTray() {
+	conf := storage.LoadConfigure()
+	if !conf.ShowTray {
+		return
+	}
+	tray.ShowTray()
+}
+
 func (w *Window) loop() error {
 	th := material.NewTheme()
-
 	var ops op.Ops
 	for {
 		e := <-w.win.Events()
@@ -72,4 +68,45 @@ func (w *Window) loop() error {
 
 func (w *Window) layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	return w.ctrl.Layout(gtx, th)
+}
+
+func (w *Window) showWin() {
+	go func() {
+		w.win = app.NewWindow(
+			app.Decorated(false),
+			app.Title("2FA"),
+			app.MinSize(unit.Dp(_winWidth), unit.Dp(_winHeight)),
+			app.MaxSize(unit.Dp(_winWidth), unit.Dp(_winHeight)),
+			app.Size(unit.Dp(_winWidth), unit.Dp(_winHeight)),
+		)
+		w.win.Perform(system.ActionCenter)
+		if err := w.loop(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+}
+
+func (w *Window) configureChanged() {
+	conf := storage.LoadConfigure()
+	if conf.ShowTray {
+		w.showTray()
+	} else {
+		tray.DismissTray()
+	}
+}
+
+func (w *Window) closeWin() {
+	if w.win == nil {
+		return
+	}
+	conf := storage.LoadConfigure()
+	if conf.ExitWhenWindowClose {
+		os.Exit(1)
+		return
+	}
+	w.win.Perform(system.ActionClose)
+}
+
+func (w *Window) exit() {
+	os.Exit(0)
 }

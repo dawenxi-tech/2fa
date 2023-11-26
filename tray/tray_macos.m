@@ -230,17 +230,37 @@ const int paddingHorizontal = 10;
 void show_tray(void) {
 
 dispatch_async(dispatch_get_main_queue(), ^{
-//     NSLog(@"inside dispatch async block main thread from main thread");
 	id delegate = [[NSApplication sharedApplication] delegate];
-	NSStatusItem* statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
-    statusItem.button.title = @"2FA";
-	id obj = [PopoverManager class];
-    SEL mySelector = @selector(show:);
-	statusItem.button.target = obj;
-    statusItem.button.action = mySelector;
-	statusItem.visible = YES;
-	[delegate performSelector:@selector(setStatusItem:) withObject:statusItem];
-// 	NSLog(@"delegate: %@", delegate);
+	NSStatusItem* statusItem = [delegate performSelector:@selector(statusItem)];
+	if (statusItem == nil) {
+	    NSStatusItem* statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
+        statusItem.button.title = @"2FA";
+    	id obj = [PopoverManager class];
+        SEL mySelector = @selector(show:);
+    	statusItem.button.target = obj;
+        statusItem.button.action = mySelector;
+    	[delegate performSelector:@selector(setStatusItem:) withObject:statusItem];
+	}
+    statusItem.visible = YES;
+});
+
+}
+
+void dismiss_tray(void) {
+
+dispatch_async(dispatch_get_main_queue(), ^{
+	id delegate = [[NSApplication sharedApplication] delegate];
+	NSStatusItem* statusItem = [delegate performSelector:@selector(statusItem)];
+    if (statusItem == nil) {
+        NSStatusItem* statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
+        statusItem.button.title = @"2FA";
+        id obj = [PopoverManager class];
+        SEL mySelector = @selector(show:);
+       	statusItem.button.target = obj;
+        statusItem.button.action = mySelector;
+       	[delegate performSelector:@selector(setStatusItem:) withObject:statusItem];
+    }
+    statusItem.visible = NO;
 });
 
 }

@@ -6,7 +6,6 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"image/color"
-	"os"
 )
 
 type Page interface {
@@ -55,7 +54,7 @@ func (ctrl *Controller) Layout(gtx layout.Context, th *material.Theme) layout.Di
 
 func (ctrl *Controller) processEvents(gtx layout.Context) {
 	if ctrl.click.Clicked() {
-		os.Exit(0)
+		ctrl.win.closeWin()
 	}
 }
 
