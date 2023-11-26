@@ -13,6 +13,7 @@ const int paddingHorizontal = 10;
 - (void) closePopover;
 @end
 
+// copy from https://github.com/cool8jay/VerticalCenterField/blob/master/VerticalCenterField/ViewController.m
 @interface VerticalCenterCell : NSTextFieldCell
 @end
 

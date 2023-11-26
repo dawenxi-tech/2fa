@@ -25,6 +25,6 @@ go.work
 
 sample
 
-github
+#github
 
 dist
