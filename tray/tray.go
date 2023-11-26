@@ -1,5 +1,5 @@
 package tray
 
-func showTray() {
+func ShowTray() {
 	show_tray()
 }

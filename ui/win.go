@@ -7,8 +7,10 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"github.com/dawenxi-tech/2fa/tray"
 	"log"
 	"os"
+	"time"
 )
 
 const _winWidth = 320
@@ -42,6 +44,12 @@ func (w *Window) Run() {
 		}
 		os.Exit(0)
 	}()
+
+	go func() {
+		time.Sleep(time.Second * 2)
+		tray.ShowTray()
+	}()
+
 	app.Main()
 }
 
