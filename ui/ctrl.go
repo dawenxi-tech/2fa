@@ -21,7 +21,8 @@ type Controller struct {
 
 func newController() *Controller {
 	return &Controller{
-		page: newCodeView(),
+		//page: newCodeView(),
+		page: newSettingsView(),
 	}
 }
 
