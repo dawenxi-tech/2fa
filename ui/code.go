@@ -26,7 +26,7 @@ type AddCode struct {
 
 func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	if add.click.Clicked() {
-		add.ctrl.page = PageAdd
+		add.ctrl.page = newAddView()
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 	var c = color.NRGBA{R: 0x81, G: 0x81, B: 0x81, A: 0xFF}
@@ -130,7 +130,6 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 
 func (c *Code) processEvent(gtx layout.Context) {
 	if c.delete.Clicked() {
-		c.ctrl.cv.deleteId = c.id
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 	if c.click.Clicked() {
@@ -187,7 +186,7 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 	}
 
 	if cv.add.Clicked() {
-		ctrl.page = PageAdd
+		ctrl.page = newAddView()
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 

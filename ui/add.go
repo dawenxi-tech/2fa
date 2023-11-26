@@ -209,7 +209,7 @@ func (av *AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 			}
 			storage.InsertCode(code)
 		}
-		ctrl.page = PageCode
+		ctrl.page = newCodeView()
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 	if av.cancelBtn.Clicked() {
@@ -218,7 +218,7 @@ func (av *AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 			op.InvalidateOp{}.Add(gtx.Ops)
 			return
 		}
-		ctrl.page = PageCode
+		ctrl.page = newCodeView()
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 }

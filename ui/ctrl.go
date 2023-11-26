@@ -9,30 +9,19 @@ import (
 	"os"
 )
 
-type Page int
-
-const (
-	PageCode = iota
-	PageAdd
-	PageSettings
-)
+type Page interface {
+	Layout(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions
+}
 
 type Controller struct {
-	win *Window
-
-	page Page
-
-	av *AddView
-	cv *CodeView
-
+	win   *Window
+	page  Page
 	click widget.Clickable
 }
 
 func newController() *Controller {
 	return &Controller{
-		page: PageCode,
-		av:   newAddView(),
-		cv:   newCodeView(),
+		page: newCodeView(),
 	}
 }
 
@@ -44,21 +33,8 @@ func (ctrl *Controller) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		icon = closeIcon
 	}
 
-	switch ctrl.page {
-	case PageCode:
-		if ctrl.cv == nil {
-			ctrl.cv = newCodeView()
-		}
-		ctrl.av = nil
-		ctrl.cv.Layout(gtx, th, ctrl)
-	case PageAdd:
-		if ctrl.av == nil {
-			ctrl.av = newAddView()
-		}
-		ctrl.cv = nil
-		ctrl.av.Layout(gtx, th, ctrl)
-	case PageSettings:
-
+	if ctrl.page != nil {
+		ctrl.page.Layout(gtx, th, ctrl)
 	}
 
 	// close button
