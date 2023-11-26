@@ -46,15 +46,30 @@ static NSUInteger nsstringLength(CFTypeRef cstr) {
 	return [str length];
 }
 
+static CFTypeRef nsimageWithData(const char* iconBytes, int length) {
+@autoreleasepool {
+    NSData* buffer = [NSData dataWithBytes:iconBytes length:length];
+    NSImage *image = [[NSImage alloc] initWithData:buffer];
+	return CFBridgingRetain(image);
+}
+}
+
 */
 import "C"
 import (
+	_ "embed"
 	"github.com/dawenxi-tech/2fa/storage"
 	"github.com/xlzd/gotp"
 	"golang.design/x/clipboard"
 	"unicode/utf16"
 	"unsafe"
 )
+
+//go:embed settings.png
+var settingsIcon []byte
+
+//go:embed dashboard.png
+var dashboardIcon []byte
 
 func show_tray() {
 	C.show_tray()
@@ -87,6 +102,24 @@ func code_on_click(str C.CFTypeRef) {
 	totp := gotp.NewDefaultTOTP(secret)
 	code := totp.Now()
 	clipboard.Write(clipboard.FmtText, []byte(code))
+}
+
+//export export_settings_icon
+func export_settings_icon() C.CFTypeRef {
+	cstr := (*C.char)(unsafe.Pointer(&settingsIcon[0]))
+	return C.nsimageWithData(cstr, (C.int)(len(settingsIcon)))
+}
+
+//export export_dashboard_icon
+func export_dashboard_icon() C.CFTypeRef {
+	cstr := (*C.char)(unsafe.Pointer(&dashboardIcon[0]))
+	return C.nsimageWithData(cstr, (C.int)(len(dashboardIcon)))
+}
+
+//export tray_button_on_click
+func tray_button_on_click(typ C.int) {
+	var t = int(typ)
+	sendEvent(EventType(t))
 }
 
 // --- Copy From Gio ---

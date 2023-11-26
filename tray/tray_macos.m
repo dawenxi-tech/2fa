@@ -8,6 +8,7 @@ const int cellWidth = 200;
 const int cellHeight = 60;
 const int cellSpace = 10;
 const int paddingHorizontal = 10;
+const int iconSize = 24;
 
 @protocol PopoverManagerDelegate <NSObject>
 - (void) closePopover;
@@ -147,6 +148,9 @@ const int paddingHorizontal = 10;
 @property (nonatomic, strong) CodesView *codes;
 @property (nonatomic, weak) NSPopover *popover;
 
+@property (nonatomic, strong) NSButton *settingsBtn;
+@property (nonatomic, strong) NSButton *dashboardBtn;
+
 @end
 
 @implementation PopoverController
@@ -167,7 +171,7 @@ const int paddingHorizontal = 10;
         return;
     }
     int len = [self.data count];
-    int height = (cellHeight+cellSpace) * len;
+    int height = (cellHeight+cellSpace) * len + iconSize + cellSpace;
 
     self.codes = [[CodesView alloc] initWithFrame:CGRectMake(0, 0, cellWidth, height)];
     NSMutableArray<CodeView*> *codesView = [NSMutableArray array];
@@ -182,6 +186,55 @@ const int paddingHorizontal = 10;
     [self.view addSubview:self.codes];
 
     [self.codes refreshCodes];
+    [self refreshButton];
+}
+
+- (void) refreshButton {
+    [self ensureButton];
+
+    int len = [self.data count];
+    int oy = (cellHeight+cellSpace) * len;
+
+    self.settingsBtn.frame = CGRectMake(cellWidth - iconSize*2-30, oy, iconSize, iconSize);
+    self.dashboardBtn.frame = CGRectMake(cellWidth - iconSize-20, oy, iconSize, iconSize);
+}
+
+- (void) ensureButton {
+    if (self.settingsBtn ==  nil) {
+        NSImage *settingsIcon = CFBridgingRelease(export_settings_icon());
+        settingsIcon.size = CGSizeMake(iconSize, iconSize);
+
+        self.settingsBtn = [[NSButton alloc] init];
+        self.settingsBtn.image = settingsIcon;
+        self.settingsBtn.wantsLayer = YES;
+        self.settingsBtn.bordered = NO;
+        self.settingsBtn.target = self;
+        self.settingsBtn.action = @selector(buttonClick:);
+        self.settingsBtn.layer.backgroundColor = [[NSColor clearColor] CGColor];
+        [self.view addSubview: self.settingsBtn];
+
+        NSImage *dashboardIcon = CFBridgingRelease(export_dashboard_icon());
+        dashboardIcon.size = CGSizeMake(iconSize, iconSize);
+
+        self.dashboardBtn = [[NSButton alloc] init];
+        self.dashboardBtn.image = dashboardIcon;
+        self.dashboardBtn.wantsLayer = YES;
+        self.dashboardBtn.bordered = NO;
+        self.dashboardBtn.target = self;
+        self.dashboardBtn.action = @selector(buttonClick:);
+        self.dashboardBtn.layer.backgroundColor = [[NSColor clearColor] CGColor];
+        [self.view addSubview: self.dashboardBtn];
+    }
+}
+
+
+- (void) buttonClick:(NSButton *) button {
+    NSLog(@"settingsBtnClicked");
+    if (self.settingsBtn == button) {
+        tray_button_on_click(1);
+    } else {
+        tray_button_on_click(2);
+    }
 }
 
 - (void) closePopover {
@@ -206,7 +259,7 @@ const int paddingHorizontal = 10;
 + (void)show:(NSStatusBarButton *) button {
     NSArray *codes = CFBridgingRelease(export_codes());
     int len = [codes count];
-    int height = (cellHeight+cellSpace) * len;
+    int height = (cellHeight+cellSpace) * len + iconSize + cellSpace;
 
     PopoverController *vc = [[PopoverController alloc] init];
     vc.view = [[NSView alloc] init];

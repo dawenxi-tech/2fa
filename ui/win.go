@@ -32,6 +32,8 @@ func NewWin() *Window {
 
 func (w *Window) Run() {
 
+	w.processTrayEvents()
+
 	w.showWin()
 
 	go func() {
@@ -83,6 +85,7 @@ func (w *Window) showWin() {
 		if err := w.loop(); err != nil {
 			log.Fatal(err)
 		}
+		w.win = nil
 	}()
 }
 
@@ -105,6 +108,22 @@ func (w *Window) closeWin() {
 		return
 	}
 	w.win.Perform(system.ActionClose)
+}
+
+func (w *Window) processTrayEvents() {
+	go func() {
+		evt := <-tray.Event
+		switch evt {
+		case tray.EventShowSetting:
+
+		case tray.EventShowWindow:
+			if w.win == nil {
+				w.showWin()
+			}
+		default:
+
+		}
+	}()
 }
 
 func (w *Window) exit() {
