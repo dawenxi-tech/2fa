@@ -102,6 +102,10 @@ func (w *Window) closeWin() {
 	if w.win == nil {
 		return
 	}
+	if _, ok := w.ctrl.page.(*SettingsView); ok {
+		w.ctrl.page = newCodeView()
+		return
+	}
 	conf := storage.LoadConfigure()
 	if conf.ExitWhenWindowClose {
 		os.Exit(1)
@@ -112,16 +116,22 @@ func (w *Window) closeWin() {
 
 func (w *Window) processTrayEvents() {
 	go func() {
-		evt := <-tray.Event
-		switch evt {
-		case tray.EventShowSetting:
-
-		case tray.EventShowWindow:
-			if w.win == nil {
-				w.showWin()
+		for {
+			evt := <-tray.Event
+			switch evt {
+			case tray.EventShowSetting:
+				w.ctrl.page = newSettingsView()
+				if w.win != nil {
+					w.win.Invalidate()
+				}
+				fallthrough
+			case tray.EventShowWindow:
+				if w.win == nil {
+					w.showWin()
+				}
+				//tray.BringWindowToFront()
+			default:
 			}
-		default:
-
 		}
 	}()
 }

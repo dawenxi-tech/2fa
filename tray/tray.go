@@ -20,3 +20,7 @@ func DismissTray() {
 func sendEvent(typ EventType) {
 	Event <- typ
 }
+
+func BringWindowToFront() {
+	bring_window_to_front()
+}

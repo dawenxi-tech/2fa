@@ -54,6 +54,15 @@ static CFTypeRef nsimageWithData(const char* iconBytes, int length) {
 }
 }
 
+static void windowMakeKeyAndOrderFront() {
+dispatch_async(dispatch_get_main_queue(), ^{
+	//NSLog(@"windows -> %@", [NSApp windows]);
+    NSWindow *win = [NSApp mainWindow];
+	//NSLog(@"win -> %@", win);
+	[win makeKeyAndOrderFront:nil];
+});
+}
+
 */
 import "C"
 import (
@@ -120,6 +129,10 @@ func export_dashboard_icon() C.CFTypeRef {
 func tray_button_on_click(typ C.int) {
 	var t = int(typ)
 	sendEvent(EventType(t))
+}
+
+func bring_window_to_front() {
+	C.windowMakeKeyAndOrderFront()
 }
 
 // --- Copy From Gio ---

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -55,6 +56,7 @@ func (ctrl *Controller) Layout(gtx layout.Context, th *material.Theme) layout.Di
 func (ctrl *Controller) processEvents(gtx layout.Context) {
 	if ctrl.click.Clicked() {
 		ctrl.win.closeWin()
+		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 }
 

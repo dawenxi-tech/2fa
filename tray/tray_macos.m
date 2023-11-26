@@ -229,7 +229,7 @@ const int iconSize = 24;
 
 
 - (void) buttonClick:(NSButton *) button {
-    NSLog(@"settingsBtnClicked");
+    // NSLog(@"settingsBtnClicked");
     if (self.settingsBtn == button) {
         tray_button_on_click(1);
     } else {
