@@ -50,6 +50,7 @@ import "C"
 import (
 	"github.com/dawenxi-tech/2fa/storage"
 	"github.com/xlzd/gotp"
+	"golang.design/x/clipboard"
 	"unicode/utf16"
 	"unsafe"
 )
@@ -73,6 +74,14 @@ func export_2fa_code(str C.CFTypeRef) C.CFTypeRef {
 	secret := nsstringToString(str)
 	totp := gotp.NewDefaultTOTP(secret)
 	return stringToNSString(totp.Now())
+}
+
+//export code_on_click
+func code_on_click(str C.CFTypeRef) {
+	secret := nsstringToString(str)
+	totp := gotp.NewDefaultTOTP(secret)
+	code := totp.Now()
+	clipboard.Write(clipboard.FmtText, []byte(code))
 }
 
 // --- Copy From Gio ---

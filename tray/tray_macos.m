@@ -6,13 +6,39 @@
 
 const int cellWidth = 200;
 const int cellHeight = 60;
+const int cellSpace = 10;
+const int paddingHorizontal = 10;
 
+@protocol PopoverManagerDelegate <NSObject>
+- (void) closePopover;
+@end
+
+@interface VerticalCenterCell : NSTextFieldCell
+@end
+
+@implementation VerticalCenterCell
+- (NSRect)drawingRectForBounds:(NSRect)theRect{
+    NSRect newRect = [super drawingRectForBounds:theRect];
+    NSSize textSize = [self cellSizeForBounds:theRect];
+    float heightDelta = newRect.size.height - textSize.height;
+    if (heightDelta > 0){
+        newRect.size.height -= heightDelta;
+        newRect.origin.y += round(heightDelta / 2);
+    }
+    return newRect;
+}
+- (void)selectWithFrame:(NSRect)aRect inView:(NSView *)controlView editor:(NSText *)textObj delegate:(nullable id)anObject start:(NSInteger)selStart length:(NSInteger)selLength{
+    aRect = [self drawingRectForBounds:aRect];
+    [super selectWithFrame:aRect inView:controlView editor:textObj delegate:anObject start:selStart length:selLength];
+}
+@end
 
 @interface CodeView : NSView
 
 @property (strong) NSString * secret;
 @property (strong) NSTextField* code;
 @property(strong) NSTextField * name;
+@property (nonatomic, weak) id<PopoverManagerDelegate> popover;
 
 @end
 
@@ -23,27 +49,51 @@ const int cellHeight = 60;
 - (id)init {
     self = [super init];
 
-    self.name = [NSTextField labelWithString:@""];
-    self.name.frame = CGRectMake(0, 40, cellWidth, cellHeight-40);
-    self.name.wantsLayer = YES;
+    self.name = [[NSTextField alloc] init];
+    self.name.frame = CGRectMake(10, 40, cellWidth-20 - 2 * paddingHorizontal, cellHeight-40);
+    VerticalCenterCell *nameCell = [[VerticalCenterCell alloc] init];
+    nameCell.stringValue = @"";
+    nameCell.editable = NO;
+    nameCell.scrollable = NO;
+    nameCell.alignment = NSTextAlignmentLeft;
+    nameCell.bordered = NO;
+    nameCell.textColor = [NSColor grayColor];
+    self.name.cell = nameCell;
     [self addSubview:self.name];
 
-
-    self.code = [NSTextField labelWithString:@""];
-    self.code.frame = CGRectMake(0, 0, cellWidth, 40);
+    self.code = [[NSTextField alloc] init];
+    self.code.frame = NSMakeRect(0, 0, cellWidth-paddingHorizontal * 2, 40);
+    VerticalCenterCell *cell = [[VerticalCenterCell alloc] init];
+    cell.stringValue = @"";
+    cell.editable = NO;
+    cell.scrollable = NO;
+    cell.alignment = NSTextAlignmentCenter;
+    cell.bordered = NO;
+    cell.font = [NSFont monospacedSystemFontOfSize:28 weight:600];
+    self.code.cell = cell;
     self.code.wantsLayer = YES;
-    self.code.layer.backgroundColor = [[NSColor greenColor] CGColor];
+    self.code.usesSingleLineMode = YES;
+
     [self addSubview:self.code];
+
+    self.wantsLayer = YES;
+    self.layer.backgroundColor = [[NSColor whiteColor] CGColor];
 
     return self;
 }
 
 - (void) mouseDown:(NSEvent *)event {
-    NSLog(@"mouse down %@", event);
+    // todo Material Ripple effect
+    // NSLog(@"mouse down %@", event);
+    code_on_click((__bridge CFTypeRef)self.secret);
+    if (self.popover != nil) {
+        [self.popover closePopover];
+    }
 }
 
 - (void) mouseUp:(NSEvent *)event {
-    NSLog(@"mouse up %@", event);
+    // todo Material Ripple effect
+    // NSLog(@"mouse up %@", event);
 }
 
 @end
@@ -66,11 +116,11 @@ const int cellHeight = 60;
 
 
 - (void) layout {
-    int oy = 0;
+    int oy = cellSpace / 2;
     for (CodeView *codeView in self.codes) {
-        codeView.frame = CGRectMake(0, oy, cellWidth, cellHeight);
+        codeView.frame = CGRectMake(paddingHorizontal, oy, cellWidth-2*paddingHorizontal, cellHeight);
         [self addSubview:codeView];
-        oy += cellHeight;
+        oy += cellHeight + cellSpace;
     }
 }
 
@@ -90,31 +140,40 @@ const int cellHeight = 60;
 @end
 
 
-@interface PopoverController : NSViewController
+@interface PopoverController : NSViewController <PopoverManagerDelegate>
 
 @property (nonatomic, strong) NSArray<NSDictionary*>* data;
 @property (nonatomic, strong) CodesView *codes;
+@property (nonatomic, weak) NSPopover *popover;
 
 @end
 
 @implementation PopoverController
 
 - (void) viewDidAppear {
-    NSLog(@"PopoverController viewDidAppear");
+//     NSLog(@"PopoverController viewDidAppear");
+    [super viewDidAppear];
     [self loadViews];
 }
 
+- (void) viewDidDisappear {
+//     NSLog(@"PopoverController viewDidDisappear");
+    [super viewDidDisappear];
+}
 
 - (void) loadViews {
     if (self.codes != nil) {
         return;
     }
-    self.codes = [[CodesView alloc] initWithFrame:CGRectMake(0, 0, cellWidth, 400)];
+    int len = [self.data count];
+    int height = (cellHeight+cellSpace) * len;
+
+    self.codes = [[CodesView alloc] initWithFrame:CGRectMake(0, 0, cellWidth, height)];
     NSMutableArray<CodeView*> *codesView = [NSMutableArray array];
 	for (NSDictionary *dic in self.data) {
         CodeView *code = [[CodeView alloc] init];
+        code.popover = self;
         code.secret = [dic objectForKey:@"secret"];
-        code.code.stringValue = [dic objectForKey: @"name"];
         code.name.stringValue = [dic objectForKey: @"name"];
         [codesView addObject:code];
 	}
@@ -122,6 +181,12 @@ const int cellHeight = 60;
     [self.view addSubview:self.codes];
 
     [self.codes refreshCodes];
+}
+
+- (void) closePopover {
+    if (self.popover) {
+        [self.popover close];
+    }
 }
 
 @end
@@ -138,19 +203,24 @@ const int cellHeight = 60;
 @implementation PopoverManager
 
 + (void)show:(NSStatusBarButton *) button {
+    NSArray *codes = CFBridgingRelease(export_codes());
+    int len = [codes count];
+    int height = (cellHeight+cellSpace) * len;
+
     PopoverController *vc = [[PopoverController alloc] init];
     vc.view = [[NSView alloc] init];
-    NSArray *codes = CFBridgingRelease(export_codes());
     vc.data = codes;
-    int len = [codes count];
-    int height = cellHeight * len;
-    
+
     NSPopover* popover = [[NSPopover alloc] init];
     popover.contentSize = CGSizeMake(cellWidth, height);
     popover.behavior = NSPopoverBehaviorTransient;
     popover.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantLight];
     popover.contentViewController = vc;
+    vc.popover = popover;
     [popover showRelativeToRect:button.bounds ofView:button preferredEdge:NSRectEdgeMaxY];
+
+    // auto close popover when click out bounds;
+    [[[[popover contentViewController] view] window] makeKeyWindow];
 }
 
 
@@ -159,7 +229,7 @@ const int cellHeight = 60;
 void show_tray(void) {
 
 dispatch_async(dispatch_get_main_queue(), ^{
-    NSLog(@"inside dispatch async block main thread from main thread");
+//     NSLog(@"inside dispatch async block main thread from main thread");
 	id delegate = [[NSApplication sharedApplication] delegate];
 	NSStatusItem* statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
     statusItem.button.title = @"2FA";
@@ -169,7 +239,7 @@ dispatch_async(dispatch_get_main_queue(), ^{
     statusItem.button.action = mySelector;
 	statusItem.visible = YES;
 	[delegate performSelector:@selector(setStatusItem:) withObject:statusItem];
-	NSLog(@"delegate: %@", delegate);
+// 	NSLog(@"delegate: %@", delegate);
 });
 
 }
