@@ -33,4 +33,4 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 )
 
-replace gioui.org => ./github/gio
+replace gioui.org => ./gio
