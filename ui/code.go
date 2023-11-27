@@ -91,9 +91,14 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.UniformInset(10).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					if c.edit {
-						return material.Editor(th, c.input, "").Layout(gtx)
+						editor := material.Editor(th, c.input, "")
+						editor.TextSize = unit.Sp(14)
+						editor.Color = color.NRGBA{R: 0x66, G: 0x66, B: 0x66, A: 0xFF}
+						return editor.Layout(gtx)
 					}
-					return material.Label(th, unit.Sp(18), c.name).Layout(gtx)
+					label := material.Label(th, unit.Sp(14), c.name)
+					label.Color = color.NRGBA{R: 0x66, G: 0x66, B: 0x66, A: 0xFF}
+					return label.Layout(gtx)
 				})
 			}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Inset{
@@ -101,7 +106,7 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 				}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						code := tryGetFA(c.secret)
-						label := material.Label(th, unit.Sp(32), code)
+						label := material.Label(th, unit.Sp(30), code)
 						label.Color = codeColorGradient()
 						return label.Layout(gtx)
 					})
