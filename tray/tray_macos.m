@@ -8,7 +8,7 @@ const int cellWidth = 200;
 const int cellHeight = 60;
 const int cellSpace = 10;
 const int paddingHorizontal = 10;
-const int iconSize = 24;
+const int iconSize = 20;
 
 @protocol PopoverManagerDelegate <NSObject>
 - (void) closePopover;
@@ -287,7 +287,10 @@ dispatch_async(dispatch_get_main_queue(), ^{
 	NSStatusItem* statusItem = [delegate performSelector:@selector(statusItem)];
 	if (statusItem == nil) {
 	    NSStatusItem* statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
-        statusItem.button.title = @"2FA";
+        NSImage *image = CFBridgingRelease(export_icon_data());
+        [image setSize:NSMakeSize(16, 16)];
+        image.template = true;
+        statusItem.button.image = image;
     	id obj = [PopoverManager class];
         SEL mySelector = @selector(show:);
     	statusItem.button.target = obj;
@@ -306,7 +309,10 @@ dispatch_async(dispatch_get_main_queue(), ^{
 	NSStatusItem* statusItem = [delegate performSelector:@selector(statusItem)];
     if (statusItem == nil) {
         NSStatusItem* statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
-        statusItem.button.title = @"2FA";
+        NSImage *image = CFBridgingRelease(export_icon_data());
+        [image setSize:NSMakeSize(16, 16)];
+        image.template = true;
+        statusItem.button.image = image;
         id obj = [PopoverManager class];
         SEL mySelector = @selector(show:);
        	statusItem.button.target = obj;

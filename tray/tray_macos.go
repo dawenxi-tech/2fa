@@ -80,6 +80,9 @@ var settingsIcon []byte
 //go:embed dashboard.png
 var dashboardIcon []byte
 
+//go:embed 2fa-tray.png
+var iconData []byte
+
 func show_tray() {
 	C.show_tray()
 }
@@ -123,6 +126,12 @@ func export_settings_icon() C.CFTypeRef {
 func export_dashboard_icon() C.CFTypeRef {
 	cstr := (*C.char)(unsafe.Pointer(&dashboardIcon[0]))
 	return C.nsimageWithData(cstr, (C.int)(len(dashboardIcon)))
+}
+
+//export export_icon_data
+func export_icon_data() C.CFTypeRef {
+	cstr := (*C.char)(unsafe.Pointer(&iconData[0]))
+	return C.nsimageWithData(cstr, (C.int)(len(iconData)))
 }
 
 //export tray_button_on_click
