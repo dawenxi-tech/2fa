@@ -2,6 +2,7 @@
 // +build darwin,!ios
 
 #include <AppKit/AppKit.h>
+#include <QuartzCore/QuartzCore.h>
 #include "_cgo_export.h"
 
 const int cellWidth = 200;
@@ -9,10 +10,6 @@ const int cellHeight = 60;
 const int cellSpace = 10;
 const int paddingHorizontal = 10;
 const int iconSize = 20;
-
-@protocol PopoverManagerDelegate <NSObject>
-- (void) closePopover;
-@end
 
 // copy from https://github.com/cool8jay/VerticalCenterField/blob/master/VerticalCenterField/ViewController.m
 @interface VerticalCenterCell : NSTextFieldCell
@@ -40,7 +37,8 @@ const int iconSize = 20;
 @property (strong) NSString * secret;
 @property (strong) NSTextField* code;
 @property(strong) NSTextField * name;
-@property (nonatomic, weak) id<PopoverManagerDelegate> popover;
+
+@property (nonatomic, strong)   NSView *ripple;
 
 @end
 
@@ -50,6 +48,13 @@ const int iconSize = 20;
 
 - (id)init {
     self = [super init];
+
+    NSView *ripple = [[NSView alloc] init];
+    ripple.wantsLayer = YES;
+    ripple.layer.backgroundColor = [NSColor grayColor].CGColor;
+    ripple.alphaValue = 0.0f;
+    self.ripple = ripple;
+    [self addSubview:ripple];
 
     self.name = [[NSTextField alloc] init];
     self.name.frame = CGRectMake(10, 40, cellWidth-20 - 2 * paddingHorizontal, cellHeight-40);
@@ -85,18 +90,53 @@ const int iconSize = 20;
 }
 
 - (void) mouseDown:(NSEvent *)event {
-    // todo Material Ripple effect
-    // NSLog(@"mouse down %@", event);
     code_on_click((__bridge CFTypeRef)self.secret);
-    if (self.popover != nil) {
-        [self.popover closePopover];
-    }
+
+    CGFloat duration = 0.5;
+    NSPoint p = event.locationInWindow;
+    CGFloat size = self.frame.size.width * 3;
+    CGFloat x = p.x - self.frame.origin.x;
+    CGFloat y = p.y - self.frame.origin.y;
+    x = -size*0.1/2 + x;
+    y = -size*0.1/2 + y;
+    CGFloat tx = -size/2+x;
+    CGFloat ty = -size/2+y;
+    CAMediaTimingFunctionName fn = kCAMediaTimingFunctionLinear;
+
+    self.ripple.layer.cornerRadius = size * 0.5f;
+    self.ripple.frame = CGRectMake(tx, ty, size, size);
+
+    CABasicAnimation *alphaAnimation =  [CABasicAnimation animationWithKeyPath:@"opacity"];
+    alphaAnimation.fromValue = [NSNumber numberWithFloat:0.8];
+    alphaAnimation.toValue = [NSNumber numberWithFloat:0.0];
+    alphaAnimation.duration = duration;
+    alphaAnimation.timingFunction = [CAMediaTimingFunction functionWithName:fn];
+
+
+    CABasicAnimation *scaleAnimation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
+    scaleAnimation.fromValue = [NSNumber numberWithFloat:0.1];
+    scaleAnimation.toValue = [NSNumber numberWithFloat:1];
+    scaleAnimation.duration = duration;
+    scaleAnimation.timingFunction = [CAMediaTimingFunction functionWithName:fn];
+
+    CABasicAnimation *posYAnimation = [CABasicAnimation animationWithKeyPath:@"position.y"];
+    posYAnimation.fromValue = [NSNumber numberWithFloat:y];
+    posYAnimation.toValue = [NSNumber numberWithFloat:ty];
+    posYAnimation.duration = duration;
+    posYAnimation.timingFunction = [CAMediaTimingFunction functionWithName:fn];
+
+    CABasicAnimation *posXAnimation = [CABasicAnimation animationWithKeyPath:@"position.x"];
+    posXAnimation.fromValue = [NSNumber numberWithFloat:x];
+    posXAnimation.toValue = [NSNumber numberWithFloat:tx];
+    posXAnimation.duration = duration;
+    posXAnimation.timingFunction = [CAMediaTimingFunction functionWithName:fn];
+
+    [self.ripple.layer addAnimation:posXAnimation forKey:@"posXAnimation"];
+    [self.ripple.layer addAnimation:posYAnimation forKey:@"posYAnimation"];
+    [self.ripple.layer addAnimation:scaleAnimation forKey:@"scaleAnimation"];
+    [self.ripple.layer addAnimation:alphaAnimation forKey:@"alphaAnimation"];
 }
 
-- (void) mouseUp:(NSEvent *)event {
-    // todo Material Ripple effect
-    // NSLog(@"mouse up %@", event);
-}
 
 @end
 
@@ -142,7 +182,7 @@ const int iconSize = 20;
 @end
 
 
-@interface PopoverController : NSViewController <PopoverManagerDelegate>
+@interface PopoverController : NSViewController
 
 @property (nonatomic, strong) NSArray<NSDictionary*>* data;
 @property (nonatomic, strong) CodesView *codes;
@@ -177,7 +217,6 @@ const int iconSize = 20;
     NSMutableArray<CodeView*> *codesView = [NSMutableArray array];
 	for (NSDictionary *dic in self.data) {
         CodeView *code = [[CodeView alloc] init];
-        code.popover = self;
         code.secret = [dic objectForKey:@"secret"];
         code.name.stringValue = [dic objectForKey: @"name"];
         [codesView addObject:code];
@@ -227,19 +266,12 @@ const int iconSize = 20;
     }
 }
 
-
 - (void) buttonClick:(NSButton *) button {
     // NSLog(@"settingsBtnClicked");
     if (self.settingsBtn == button) {
         tray_button_on_click(1);
     } else {
         tray_button_on_click(2);
-    }
-}
-
-- (void) closePopover {
-    if (self.popover) {
-        [self.popover close];
     }
 }
 
