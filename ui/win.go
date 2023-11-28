@@ -1,6 +1,11 @@
 package ui
 
 import (
+	"log"
+	"os"
+	"runtime"
+	"time"
+
 	"gioui.org/app"
 	"gioui.org/io/system"
 	"gioui.org/layout"
@@ -9,9 +14,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/dawenxi-tech/2fa/storage"
 	"github.com/dawenxi-tech/2fa/tray"
-	"log"
-	"os"
-	"time"
 )
 
 const _winWidth = 320
@@ -74,13 +76,16 @@ func (w *Window) layout(gtx layout.Context, th *material.Theme) layout.Dimension
 
 func (w *Window) showWin() {
 	go func() {
-		w.win = app.NewWindow(
-			app.Decorated(false),
+		options := []app.Option{
 			app.Title("2FA"),
 			app.MinSize(unit.Dp(_winWidth), unit.Dp(_winHeight)),
 			app.MaxSize(unit.Dp(_winWidth), unit.Dp(_winHeight)),
 			app.Size(unit.Dp(_winWidth), unit.Dp(_winHeight)),
-		)
+		}
+		if runtime.GOOS == "darwin" {
+			options = append(options, app.Decorated(false))
+		}
+		w.win = app.NewWindow(options...)
 		w.win.Perform(system.ActionCenter)
 		if err := w.loop(); err != nil {
 			log.Fatal(err)
