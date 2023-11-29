@@ -3,6 +3,9 @@
 
 package tray
 
+//go:embed 2fa-tray.png
+var iconData []byte
+
 func show_tray() {
 
 }
