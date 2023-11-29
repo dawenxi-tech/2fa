@@ -22,3 +22,5 @@ func onExit() {
 func onReady() {
 
 }
+
+func change_application_activation_policy(i int) {}
