@@ -96,6 +96,11 @@ func (w *Window) configureChanged() {
 	} else {
 		tray.DismissTray()
 	}
+	if conf.WindowMode {
+		tray.ChangeApplicationActivationPolicy(tray.ApplicationActivationPolicyRegular)
+	} else {
+		tray.ChangeApplicationActivationPolicy(tray.ApplicationActivationPolicyAccessory)
+	}
 }
 
 func (w *Window) closeWin() {
@@ -129,7 +134,7 @@ func (w *Window) processTrayEvents() {
 				if w.win == nil {
 					w.showWin()
 				}
-				//tray.BringWindowToFront()
+				tray.BringWindowToFront()
 			default:
 			}
 		}

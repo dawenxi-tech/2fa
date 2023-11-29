@@ -56,10 +56,18 @@ static CFTypeRef nsimageWithData(const char* iconBytes, int length) {
 
 static void windowMakeKeyAndOrderFront() {
 dispatch_async(dispatch_get_main_queue(), ^{
-	//NSLog(@"windows -> %@", [NSApp windows]);
-    NSWindow *win = [NSApp mainWindow];
-	//NSLog(@"win -> %@", win);
-	[win makeKeyAndOrderFront:nil];
+	[NSApp activateIgnoringOtherApps:YES];
+});
+}
+
+static void appChangeApplicationActivationPolicy(int i) {
+dispatch_async(dispatch_get_main_queue(), ^{
+	if (i == 1) {
+		[NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+	} else {
+		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+	}
+	[NSApp activateIgnoringOtherApps:YES];
 });
 }
 
@@ -142,6 +150,10 @@ func tray_button_on_click(typ C.int) {
 
 func bring_window_to_front() {
 	C.windowMakeKeyAndOrderFront()
+}
+
+func change_application_activation_policy(i int) {
+	C.appChangeApplicationActivationPolicy((C.int)(i))
 }
 
 // --- Copy From Gio ---
