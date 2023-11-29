@@ -1,5 +1,3 @@
-
-
 APP_NAME=2FA
 BUNDLE_ID=tech.dawenxi.2fa
 DIR_RELEASE=./dist/release
@@ -34,9 +32,10 @@ ci-all:
 
 
 dep-sub:
-	# to pull in gio
+	@echo ""
+	@echo "Installing gio sub module ..."
 	git submodule update --init --recursive
-	
+	@echo ""
 
 dep-tools:
 	@echo ""
@@ -55,16 +54,23 @@ dep-tools:
 	# https://github.com/a8m/tree
 	go install github.com/a8m/tree/cmd/tree@latest
 
+	@echo ""
+
+
 ### ASSETS
 
 assets-convert:
-	# First we copy the PNG we want up to assets folder ( which the packaing uses as truth)
+	@echo ""
+	@echo "Asset conversion ..."
+	# First we copy the PNG we want up to assets folder ( which the build and packaging uses as truth )
 	cp $(APP_ICON) ./assets/2fa.png
 
 	# Then, we do the conversion of the PNG to ICNS
 	icnsify --input ./assets/2fa.png --output ./assets/2fa.icns
+	@echo ""
+
 assets-preview:
-	# Lets check if the conversion worked and check the diffeerent resolutions.
+	# Lets check if the conversion worked and check the different resolutions.
 	preview $(PWD)/assets/2fa.icns
 
 
@@ -73,7 +79,7 @@ assets-preview:
 
 build:
 	@echo ""
-	@echo "Building ..."
+	@echo "Building phase ..."
 
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
@@ -97,6 +103,7 @@ endif
 ifeq ($(OS_GO_OS),linux)
 	@echo ""
 	@echo "Detected Linux but we have no Linux support yet, so skipping ..."
+	@echo ""
 endif 
 
 
