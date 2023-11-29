@@ -12,7 +12,7 @@ include env.mk
 
 ci-all: 
 	@echo ""
-	@echo "ci-all called"
+	@echo "ci-all called ..."
 	@echo ""
 
 	# .env
@@ -25,12 +25,20 @@ ci-all:
 	@echo "RUNNER_OS:        $(RUNNER_OS)"
 	@echo "RUNNER_ARCH:      $(RUNNER_ARCH)"
 
+	$(MAKE) dep-tools
+
 ifeq ($(OS_GO_OS),windows)
+	@echo ""
+	@echo "Detected Windows so building ..."
 	$(MAKE) build-windows-all
+	@echo ""
 endif
 
 ifeq ($(OS_GO_OS),darwin)
+	@echo ""
+	@echo "Detected Windows so building ..."
 	$(MAKE) build-macos-all
+	@echo ""
 endif
 
 ifeq ($(OS_GO_OS),linux)
@@ -44,6 +52,8 @@ dep-sub:
 	
 
 dep-tools:
+	@echo ""
+	@echo "Installing tools ..."
 	# icns viewer
 	go install github.com/jackmordaunt/icns/cmd/preview@latest
 

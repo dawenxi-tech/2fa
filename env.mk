@@ -18,7 +18,7 @@ env-print:
 
 	@echo ""
 	@echo "-- .env --"
-	@echo "--- OS ---"
+	@echo "--- os ---"
 	@echo "OS_GO_BIN_NAME:   $(OS_GO_BIN_NAME)"
 	@echo "OS_GO_OS:         $(OS_GO_OS)"
 	@echo "OS_GO_VERSION:    $(OS_GO_VERSION)"
@@ -31,5 +31,5 @@ env-print:
 	@echo "BUNDLE_ID:     $(BUNDLE_ID)"
 	@echo "DIR_RELEASE:   $(DIR_RELEASE)"
 	@echo "APP_ICON:      $(APP_ICON)"
-
+	@echo ""
 
