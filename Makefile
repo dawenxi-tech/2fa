@@ -15,6 +15,9 @@ ci-all: env-print
 	@echo "ci-all called"
 	@echo ""
 
+	# Now build based on the CI env variable.
+	@echo "RUNNER_OS:        $(RUNNER_OS)" 
+	@echo "RUNNER_ARCH:      $(RUNNER_ARCH)" 
 
 dep-sub:
 	# to pull in gio
