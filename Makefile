@@ -10,10 +10,11 @@ APP_ICON=./assets-backup/2fa.png
 include env.mk
 
 
-ci-all:
+ci-all: env-print
 	@echo ""
 	@echo "ci-all called"
 	@echo ""
+
 
 dep-sub:
 	# to pull in gio
