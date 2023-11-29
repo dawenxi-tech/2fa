@@ -9,14 +9,22 @@ APP_ICON=./assets-backup/2fa.png
 # override the above environment varaibles as needed
 include env.mk
 
+all:
+	@echo ""
+	@echo "all called on latop..."
+	@echo ""
+
+	# .env
+	$(MAKE) env-print
+
+	$(MAKE) dep-sub
+
+	$(MAKE) build
 
 ci-all: 
 	@echo ""
 	@echo "ci-all called ..."
 	@echo ""
-
-	# .env
-	$(MAKE) env-print
 
 	# .ci
 	@echo ""
@@ -25,29 +33,8 @@ ci-all:
 	@echo "RUNNER_OS:        $(RUNNER_OS)"
 	@echo "RUNNER_ARCH:      $(RUNNER_ARCH)"
 
-	$(MAKE) dep-sub
+	$(MAKE) all
 
-ifeq ($(OS_GO_OS),windows)
-	@echo ""
-	@echo "Detected Windows so building ..."
-	$(MAKE) dep-tools
-	$(MAKE) build-windows-all
-	@echo ""
-endif
-
-ifeq ($(OS_GO_OS),darwin)
-	@echo ""
-	@echo "Detected Windows so building ..."
-	$(MAKE) dep-tools
-	$(MAKE) build-macos-all
-	@echo ""
-endif
-
-ifeq ($(OS_GO_OS),linux)
-	@echo ""
-	@echo "Detected Linxu but we have no Linux supprt yet ..."
-	#minio-dep-linux
-endif 
 
 
 dep-sub:
@@ -81,7 +68,30 @@ assets-preview:
 
 
 
-### BUILD 
+### BUILD
+
+build:
+
+ifeq ($(OS_GO_OS),windows)
+	@echo ""
+	@echo "Detected Windows so building ..."
+	$(MAKE) dep-tools
+	$(MAKE) build-windows-all
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),darwin)
+	@echo ""
+	@echo "Detected Windows so building ..."
+	$(MAKE) dep-tools
+	$(MAKE) build-macos-all
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),linux)
+	@echo ""
+	@echo "Detected Linxu but we have no Linux supprt yet ..."
+endif 
 
 build-all: build-macos-all build-windows-all
 
