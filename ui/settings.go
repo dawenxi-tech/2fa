@@ -13,8 +13,9 @@ type Checkbox struct {
 }
 
 type SettingsView struct {
-	showTray widget.Bool
-	exit     widget.Bool
+	showTray   widget.Bool
+	exit       widget.Bool
+	windowMode widget.Bool
 }
 
 func newSettingsView() *SettingsView {
@@ -22,6 +23,7 @@ func newSettingsView() *SettingsView {
 	sv := &SettingsView{}
 	sv.showTray.Value = conf.ShowTray
 	sv.exit.Value = conf.ExitWhenWindowClose
+	sv.windowMode.Value = conf.WindowMode
 	return sv
 }
 
@@ -30,6 +32,9 @@ func (s *SettingsView) Layout(gtx layout.Context, th *material.Theme, ctrl *Cont
 		s.saveConfigure(ctrl)
 	}
 	if s.showTray.Changed() {
+		s.saveConfigure(ctrl)
+	}
+	if s.windowMode.Changed() {
 		s.saveConfigure(ctrl)
 	}
 	layout.Inset{Top: 40, Left: 10, Right: 10}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -53,6 +58,16 @@ func (s *SettingsView) Layout(gtx layout.Context, th *material.Theme, ctrl *Cont
 					return material.Label(th, unit.Sp(14), "Exit when window close").Layout(gtx)
 				}))
 			})
+		}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.UniformInset(20).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Horizontal, Spacing: 30}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Inset{Right: 20}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return material.Switch(th, &s.windowMode, "Run in window mode").Layout(gtx)
+					})
+				}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return material.Label(th, unit.Sp(14), "Run in window mode").Layout(gtx)
+				}))
+			})
 		}))
 	})
 
@@ -65,6 +80,12 @@ func (s *SettingsView) saveConfigure(ctrl *Controller) {
 	conf := storage.LoadConfigure()
 	conf.ExitWhenWindowClose = s.exit.Value
 	conf.ShowTray = s.showTray.Value
+	conf.WindowMode = s.windowMode.Value
+	// must show tray icon when run without window.
+	if !conf.WindowMode {
+		conf.ShowTray = true
+		s.showTray.Value = true
+	}
 	storage.SaveConfigure(conf)
-	ctrl.win.configureChanged()
+	ctrl.win.resetWithConfigure()
 }

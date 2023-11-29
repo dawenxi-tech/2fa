@@ -56,10 +56,18 @@ static CFTypeRef nsimageWithData(const char* iconBytes, int length) {
 
 static void windowMakeKeyAndOrderFront() {
 dispatch_async(dispatch_get_main_queue(), ^{
-	//NSLog(@"windows -> %@", [NSApp windows]);
-    NSWindow *win = [NSApp mainWindow];
-	//NSLog(@"win -> %@", win);
-	[win makeKeyAndOrderFront:nil];
+	[NSApp activateIgnoringOtherApps:YES];
+});
+}
+
+static void appChangeApplicationActivationPolicy(int i) {
+dispatch_async(dispatch_get_main_queue(), ^{
+	if (i == 1) {
+		[NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+	} else {
+		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+	}
+	[NSApp activateIgnoringOtherApps:YES];
 });
 }
 
@@ -80,6 +88,9 @@ var settingsIcon []byte
 
 //go:embed dashboard.png
 var dashboardIcon []byte
+
+//go:embed 2fa-tray.png
+var iconData []byte
 
 func show_tray() {
 	C.show_tray()
@@ -116,20 +127,27 @@ func code_on_click(str C.CFTypeRef) {
 
 //export export_settings_icon
 func export_settings_icon() C.CFTypeRef {
-	cstr := (*C.char)(unsafe.Pointer(&settingsIcon[0]))
-	return C.nsimageWithData(cstr, (C.int)(len(settingsIcon)))
+	return export_image_data(settingsIcon)
 }
 
 //export export_dashboard_icon
 func export_dashboard_icon() C.CFTypeRef {
-	cstr := (*C.char)(unsafe.Pointer(&dashboardIcon[0]))
-	return C.nsimageWithData(cstr, (C.int)(len(dashboardIcon)))
+	return export_image_data(dashboardIcon)
+}
+
+//export export_quit_icon
+func export_quit_icon() C.CFTypeRef {
+	return export_image_data(quitIcon)
 }
 
 //export export_icon_data
 func export_icon_data() C.CFTypeRef {
-	cstr := (*C.char)(unsafe.Pointer(&iconData[0]))
-	return C.nsimageWithData(cstr, (C.int)(len(iconData)))
+	return export_image_data(iconData)
+}
+
+func export_image_data(data []byte) C.CFTypeRef {
+	cstr := (*C.char)(unsafe.Pointer(&data[0]))
+	return C.nsimageWithData(cstr, (C.int)(len(data)))
 }
 
 //export tray_button_on_click
@@ -140,6 +158,10 @@ func tray_button_on_click(typ C.int) {
 
 func bring_window_to_front() {
 	C.windowMakeKeyAndOrderFront()
+}
+
+func change_application_activation_policy(i int) {
+	C.appChangeApplicationActivationPolicy((C.int)(i))
 }
 
 // --- Copy From Gio ---

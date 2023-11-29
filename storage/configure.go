@@ -9,6 +9,7 @@ import (
 type Configure struct {
 	ExitWhenWindowClose bool `json:"exitWhenWindowClose"`
 	ShowTray            bool `json:"showTray"`
+	WindowMode          bool `json:"windowMode"`
 }
 
 func LoadConfigure() Configure {
