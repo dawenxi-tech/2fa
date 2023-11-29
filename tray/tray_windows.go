@@ -7,7 +7,7 @@ import (
 	_ "embed"
 )
 
-//go:embed 2fa-tray.png
+//go:embed 2fa-tray.ico
 var iconData []byte
 
 func show_tray() {
