@@ -41,13 +41,14 @@ dep-tools:
 	@echo ""
 	@echo "Installing tools ..."
 
-	# icns viewer
-	go install github.com/jackmordaunt/icns/cmd/preview@latest
-
 	# icns maker doing png to icns
-	go install github.com/jackmordaunt/icns/v2/cmd/icnsify@latest
+	# icns viewer for checking they are ok.
+	# https://github.com/JackMordaunt/icns/releases/tag/v2.2.7
+	go install github.com/jackmordaunt/icns/v2/cmd/icnsify@v2.2.7
+	go install github.com/jackmordaunt/icns/cmd/preview@v2.2.7
 
 	# gio command for building cross platform
+	# https://github.com/gioui/gio-cmd
 	go install gioui.org/cmd/gogio@latest
 
 	# simple file listing help
@@ -110,7 +111,7 @@ endif
 build-list:
 	@echo ""
 	@echo "Build produced ..."
-	tree  $(DIR_RELEASE)
+	tree  -l -a -C $(DIR_RELEASE)
 
 build-all: build-macos-all build-windows-all 
 
