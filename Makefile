@@ -25,11 +25,12 @@ ci-all:
 	@echo "RUNNER_OS:        $(RUNNER_OS)"
 	@echo "RUNNER_ARCH:      $(RUNNER_ARCH)"
 
-	$(MAKE) dep-tools
+	
 
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
 	@echo "Detected Windows so building ..."
+	$(MAKE) dep-tools
 	$(MAKE) build-windows-all
 	@echo ""
 endif
@@ -37,11 +38,14 @@ endif
 ifeq ($(OS_GO_OS),darwin)
 	@echo ""
 	@echo "Detected Windows so building ..."
+	$(MAKE) dep-tools
 	$(MAKE) build-macos-all
 	@echo ""
 endif
 
 ifeq ($(OS_GO_OS),linux)
+	@echo ""
+	@echo "Detected Linxu but we have no Linux supprt yet ..."
 	#minio-dep-linux
 endif 
 
