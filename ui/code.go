@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var cellBackgroundColor = color.NRGBA{R: 0xEA, G: 0xE8, B: 0xE2, A: 0xFF}
+
 type Cell interface {
 	Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 }
@@ -39,12 +41,12 @@ func (cell *ToolCell) Layout(gtx layout.Context, th *material.Theme) layout.Dime
 	var c = color.NRGBA{R: 0x81, G: 0x81, B: 0x81, A: 0xFF}
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return cell.click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			return Background{Color: color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF}}.Layout(gtx,
+			return Background{Color: cellBackgroundColor}.Layout(gtx,
 				func(gtx layout.Context) layout.Dimensions {
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return layout.Inset{
-							Top:    unit.Dp(40),
-							Bottom: unit.Dp(40),
+							Top:    unit.Dp(32),
+							Bottom: unit.Dp(32),
 						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Alignment: layout.Middle}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								return layout.Inset{Right: unit.Dp(10)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -87,7 +89,7 @@ func (c *CodeCell) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 	c.initInput()
 	c.onSubmit(gtx)
 
-	backgroundColor := color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF}
+	backgroundColor := cellBackgroundColor
 	layoutFn := ButtonLayoutStyle{CornerRadius: 4, Background: backgroundColor, Button: &c.click}.Layout
 	if c.edit {
 		layoutFn = Background{backgroundColor}.Layout
@@ -194,7 +196,7 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 	}
 
 	if len(cv.cells) > 0 {
-		op.InvalidateOp{At: time.Now().Add(time.Second * 5)}.Add(gtx.Ops)
+		op.InvalidateOp{At: time.Now().Add(time.Second*time.Duration(5-time.Now().Second()%5) + time.Millisecond*10)}.Add(gtx.Ops)
 	}
 
 	if cv.add.Clicked() {
@@ -206,8 +208,8 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 		cv.isEdit = !cv.isEdit
 		if cv.isEdit {
 			cv.cells = append(cv.cells, &ToolCell{ctrl: ctrl, text: "ADD CODE", icon: addIcon}, &ToolCell{ctrl: ctrl, text: "SETTINGS", icon: addIcon})
-		} else {
-			cv.cells = cv.cells[:len(cv.cells)-1]
+		} else if len(cv.cells) > 2 {
+			cv.cells = cv.cells[:len(cv.cells)-2]
 		}
 	}
 
