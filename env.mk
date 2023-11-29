@@ -17,7 +17,8 @@ APP_ICON=./assets-backup/something.png
 env-print:
 
 	@echo ""
-	@echo "-- OS --"
+	@echo "-- .env --"
+	@echo "--- OS ---"
 	@echo "OS_GO_BIN_NAME:   $(OS_GO_BIN_NAME)"
 	@echo "OS_GO_OS:         $(OS_GO_OS)"
 	@echo "OS_GO_VERSION:    $(OS_GO_VERSION)"
@@ -25,7 +26,7 @@ env-print:
 	@echo ""
 
 	@echo ""
-	@echo "-- packaging --"
+	@echo "--- packaging ---"
 	@echo "APP_NAME:      $(APP_NAME)"
 	@echo "BUNDLE_ID:     $(BUNDLE_ID)"
 	@echo "DIR_RELEASE:   $(DIR_RELEASE)"

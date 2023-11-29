@@ -10,12 +10,18 @@ APP_ICON=./assets-backup/2fa.png
 include env.mk
 
 
-ci-all: env-print
+ci-all: 
 	@echo ""
 	@echo "ci-all called"
 	@echo ""
 
-	# Now build based on the CI env variable.
+	# .env
+	$(MAKE) env-print
+
+	# .ci
+	@echo ""
+	@echo "-- .ci --"
+	@echo "--- env ---"
 	@echo "RUNNER_OS:        $(RUNNER_OS)" 
 	@echo "RUNNER_ARCH:      $(RUNNER_ARCH)" 
 
