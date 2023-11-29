@@ -41,7 +41,7 @@ dep-sub:
 dep-tools:
 	@echo ""
 	@echo "Installing tools ..."
-	
+
 	# icns viewer
 	go install github.com/jackmordaunt/icns/cmd/preview@latest
 
@@ -78,17 +78,18 @@ build:
 
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
-	@echo "Detected Windows so building ..."
+	@echo "Detected Windows ..."
 	$(MAKE) dep-tools
 
 	# Windows cant build tray code: https://github.com/gedw99/2fa/actions/runs/7034294593/job/19142004038
+	@echo "Skipping Windows until we support Windows tray ..."
 	#$(MAKE) build-windows-all
 	@echo ""
 endif
 
 ifeq ($(OS_GO_OS),darwin)
 	@echo ""
-	@echo "Detected Windows so building ..."
+	@echo "Detected Darwin so building ..."
 	$(MAKE) dep-tools
 	$(MAKE) build-macos-all
 	@echo ""
@@ -96,10 +97,9 @@ endif
 
 ifeq ($(OS_GO_OS),linux)
 	@echo ""
-	@echo "Detected Linxu but we have no Linux supprt yet ..."
+	@echo "Detected Linux but we have no Linux supprt yet ..."
 endif 
 
-	$(MAKE) build-list
 
 build-list:
 	@echo ""
