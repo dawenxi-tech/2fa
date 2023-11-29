@@ -1,5 +1,3 @@
-
-
 APP_NAME=2FA
 BUNDLE_ID=tech.dawenxi.2fa
 DIR_RELEASE=./dist/release
@@ -34,13 +32,15 @@ ci-all:
 
 
 dep-sub:
-	# to pull in gio
+	@echo ""
+	@echo "Installing gio sub module ..."
 	git submodule update --init --recursive
-	
+	@echo ""
 
 dep-tools:
 	@echo ""
 	@echo "Installing tools ..."
+
 	# icns viewer
 	go install github.com/jackmordaunt/icns/cmd/preview@latest
 
@@ -50,16 +50,27 @@ dep-tools:
 	# gio command for building cross platform
 	go install gioui.org/cmd/gogio@latest
 
+	# simple file listing help
+	# https://github.com/a8m/tree
+	go install github.com/a8m/tree/cmd/tree@latest
+
+	@echo ""
+
+
 ### ASSETS
 
 assets-convert:
-	# First we copy the PNG we want up to assets folder ( which the packaing uses as truth)
+	@echo ""
+	@echo "Asset conversion ..."
+	# First we copy the PNG we want up to assets folder ( which the build and packaging uses as truth )
 	cp $(APP_ICON) ./assets/2fa.png
 
 	# Then, we do the conversion of the PNG to ICNS
 	icnsify --input ./assets/2fa.png --output ./assets/2fa.icns
+	@echo ""
+
 assets-preview:
-	# Lets check if the conversion worked and check the diffeerent resolutions.
+	# Lets check if the conversion worked and check the different resolutions.
 	preview $(PWD)/assets/2fa.icns
 
 
@@ -67,33 +78,41 @@ assets-preview:
 ### BUILD
 
 build:
+	@echo ""
+	@echo "Building phase ..."
 
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
-	@echo "Detected Windows so building ..."
+	@echo "Detected Windows ..."
 	$(MAKE) dep-tools
 
-	# Windows cant build windows: https://github.com/gedw99/2fa/actions/runs/7034294593/job/19142004038
+	# Windows cant build tray code: https://github.com/gedw99/2fa/actions/runs/7034294593/job/19142004038
+	@echo "Skipping Windows until we support Windows tray ..."
 	#$(MAKE) build-windows-all
 	@echo ""
 endif
 
 ifeq ($(OS_GO_OS),darwin)
 	@echo ""
-	@echo "Detected Windows so building ..."
+	@echo "Detected Darwin so building ..."
 	$(MAKE) dep-tools
 	$(MAKE) build-macos-all
-	# Windows on Mac works though.
-	$(MAKE) build-windows-all
 	@echo ""
 endif
 
 ifeq ($(OS_GO_OS),linux)
 	@echo ""
-	@echo "Detected Linxu but we have no Linux supprt yet ..."
+	@echo "Detected Linux but we have no Linux support yet, so skipping ..."
+	@echo ""
 endif 
 
-build-all: build-macos-all build-windows-all
+
+build-list:
+	@echo ""
+	@echo "Build produced ..."
+	tree  $(DIR_RELEASE)
+
+build-all: build-macos-all build-windows-all 
 
 build-all-del:
 	rm -rf $(DIR_RELEASE)
@@ -109,9 +128,14 @@ build-macos-arm64:
 	MAC_ARCH=arm64 $(MAKE) build-macos
 
 build-macos:
+	@echo ""
+	@echo "Building Darwin $(MAC_ARCH) ..."
+
 	rm -rf ${DIR_RELEASE}/macos/$(MAC_ARCH)
 	#TODO: release tag. cant see how to do it with gio command yet..
 	gogio -target macos -arch $(MAC_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/macos/app/$(MAC_ARCH)/$(APP_NAME).app . 
+
+	$(MAKE) build-list
 
 #### windows 
 
@@ -124,9 +148,12 @@ build-windows-arm64:
 	WINDOWS_ARCH=arm64 $(MAKE) build-windows
 
 build-windows:
+	@echo ""
+	@echo "Building Windows $(WINDOWS_ARCH) ..."
 	rm -rf ${DIR_RELEASE}/windows/$(WINDOWS_ARCH)
 	gogio -target windows -arch $(WINDOWS_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/windows/exe/$(WINDOWS_ARCH)/$(APP_NAME).exe .
 
+	$(MAKE) build-list
 
 
 ### PACKAGE

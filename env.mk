@@ -14,6 +14,8 @@ BUNDLE_ID=tech.someone.2fa
 DIR_RELEASE=./dist/release
 APP_ICON=./assets-backup/something.png
 
+# Github CI env variables: https://docs.github.com/en/actions/learn-github-actions/variables
+
 env-print:
 
 	@echo ""
