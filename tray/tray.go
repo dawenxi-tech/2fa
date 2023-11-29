@@ -5,6 +5,7 @@ type EventType int
 const (
 	EventShowSetting EventType = iota + 1
 	EventShowWindow
+	EventShowQuit
 )
 
 const (

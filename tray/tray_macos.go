@@ -88,6 +88,9 @@ var settingsIcon []byte
 //go:embed dashboard.png
 var dashboardIcon []byte
 
+//go:embed quit.png
+var quitIcon []byte
+
 //go:embed 2fa-tray.png
 var iconData []byte
 
@@ -126,20 +129,27 @@ func code_on_click(str C.CFTypeRef) {
 
 //export export_settings_icon
 func export_settings_icon() C.CFTypeRef {
-	cstr := (*C.char)(unsafe.Pointer(&settingsIcon[0]))
-	return C.nsimageWithData(cstr, (C.int)(len(settingsIcon)))
+	return export_image_data(settingsIcon)
 }
 
 //export export_dashboard_icon
 func export_dashboard_icon() C.CFTypeRef {
-	cstr := (*C.char)(unsafe.Pointer(&dashboardIcon[0]))
-	return C.nsimageWithData(cstr, (C.int)(len(dashboardIcon)))
+	return export_image_data(dashboardIcon)
+}
+
+//export export_quit_icon
+func export_quit_icon() C.CFTypeRef {
+	return export_image_data(quitIcon)
 }
 
 //export export_icon_data
 func export_icon_data() C.CFTypeRef {
-	cstr := (*C.char)(unsafe.Pointer(&iconData[0]))
-	return C.nsimageWithData(cstr, (C.int)(len(iconData)))
+	return export_image_data(iconData)
+}
+
+func export_image_data(data []byte) C.CFTypeRef {
+	cstr := (*C.char)(unsafe.Pointer(&data[0]))
+	return C.nsimageWithData(cstr, (C.int)(len(data)))
 }
 
 //export tray_button_on_click

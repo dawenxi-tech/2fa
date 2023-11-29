@@ -128,6 +128,8 @@ func (w *Window) processTrayEvents() {
 					w.showWin()
 				}
 				tray.BringWindowToFront()
+			case tray.EventShowQuit:
+				os.Exit(0)
 			default:
 			}
 		}

@@ -190,6 +190,7 @@ const int iconSize = 20;
 
 @property (nonatomic, strong) NSButton *settingsBtn;
 @property (nonatomic, strong) NSButton *dashboardBtn;
+@property (nonatomic, strong) NSButton *quitBtn;
 
 @end
 
@@ -234,8 +235,9 @@ const int iconSize = 20;
     int len = [self.data count];
     int oy = (cellHeight+cellSpace) * len;
 
-    self.settingsBtn.frame = CGRectMake(cellWidth - iconSize*2-30, oy, iconSize, iconSize);
-    self.dashboardBtn.frame = CGRectMake(cellWidth - iconSize-20, oy, iconSize, iconSize);
+    self.settingsBtn.frame = CGRectMake(paddingHorizontal, oy, iconSize, iconSize);
+    self.dashboardBtn.frame = CGRectMake(paddingHorizontal + iconSize + paddingHorizontal, oy, iconSize, iconSize);
+    self.quitBtn.frame = CGRectMake(cellWidth-iconSize-paddingHorizontal, oy, iconSize, iconSize);
 }
 
 - (void) ensureButton {
@@ -263,6 +265,18 @@ const int iconSize = 20;
         self.dashboardBtn.action = @selector(buttonClick:);
         self.dashboardBtn.layer.backgroundColor = [[NSColor clearColor] CGColor];
         [self.view addSubview: self.dashboardBtn];
+
+        NSImage *quitIcon = CFBridgingRelease(export_quit_icon());
+        quitIcon.size = CGSizeMake(iconSize, iconSize);
+
+        self.quitBtn = [[NSButton alloc] init];
+        self.quitBtn.image = quitIcon;
+        self.quitBtn.wantsLayer = YES;
+        self.quitBtn.bordered = NO;
+        self.quitBtn.target = self;
+        self.quitBtn.action = @selector(buttonClick:);
+        self.quitBtn.layer.backgroundColor = [[NSColor clearColor] CGColor];
+        [self.view addSubview: self.quitBtn];
     }
 }
 
@@ -270,8 +284,10 @@ const int iconSize = 20;
     // NSLog(@"settingsBtnClicked");
     if (self.settingsBtn == button) {
         tray_button_on_click(1);
-    } else {
+    } else if (self.dashboardBtn == button) {
         tray_button_on_click(2);
+    } else {
+        tray_button_on_click(3);
     }
 }
 
