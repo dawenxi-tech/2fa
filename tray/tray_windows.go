@@ -3,6 +3,10 @@
 
 package tray
 
+import (
+	_ "embed"
+)
+
 //go:embed 2fa-tray.png
 var iconData []byte
 
