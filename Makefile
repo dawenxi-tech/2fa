@@ -25,7 +25,7 @@ ci-all:
 	@echo "RUNNER_OS:        $(RUNNER_OS)"
 	@echo "RUNNER_ARCH:      $(RUNNER_ARCH)"
 
-	
+	$(MAKE) dep-sub
 
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
