@@ -22,8 +22,21 @@ ci-all:
 	@echo ""
 	@echo "-- .ci --"
 	@echo "--- env ---"
-	@echo "RUNNER_OS:        $(RUNNER_OS)" 
-	@echo "RUNNER_ARCH:      $(RUNNER_ARCH)" 
+	@echo "RUNNER_OS:        $(RUNNER_OS)"
+	@echo "RUNNER_ARCH:      $(RUNNER_ARCH)"
+
+ifeq ($(OS_GO_OS),windows)
+	$(MAKE) build-windows-all
+endif
+
+ifeq ($(OS_GO_OS),darwin)
+	$(MAKE) build-macos-all
+endif
+
+ifeq ($(OS_GO_OS),linux)
+	#minio-dep-linux
+endif 
+
 
 dep-sub:
 	# to pull in gio
