@@ -41,6 +41,7 @@ dep-sub:
 dep-tools:
 	@echo ""
 	@echo "Installing tools ..."
+	
 	# icns viewer
 	go install github.com/jackmordaunt/icns/cmd/preview@latest
 
@@ -49,6 +50,10 @@ dep-tools:
 
 	# gio command for building cross platform
 	go install gioui.org/cmd/gogio@latest
+
+	# simple heler
+	# https://github.com/a8m/tree
+	go install github.com/a8m/tree/cmd/tree@latest
 
 ### ASSETS
 
@@ -68,12 +73,15 @@ assets-preview:
 
 build:
 
+	@echo ""
+	@echo "Building ..."
+
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
 	@echo "Detected Windows so building ..."
 	$(MAKE) dep-tools
 
-	# Windows cant build windows: https://github.com/gedw99/2fa/actions/runs/7034294593/job/19142004038
+	# Windows cant build tray code: https://github.com/gedw99/2fa/actions/runs/7034294593/job/19142004038
 	#$(MAKE) build-windows-all
 	@echo ""
 endif
@@ -83,8 +91,6 @@ ifeq ($(OS_GO_OS),darwin)
 	@echo "Detected Windows so building ..."
 	$(MAKE) dep-tools
 	$(MAKE) build-macos-all
-	# Windows on Mac works though.
-	$(MAKE) build-windows-all
 	@echo ""
 endif
 
@@ -92,6 +98,13 @@ ifeq ($(OS_GO_OS),linux)
 	@echo ""
 	@echo "Detected Linxu but we have no Linux supprt yet ..."
 endif 
+
+	$(MAKE) build-list
+
+build-list:
+	@echo ""
+	@echo "Build listing ..."
+	tree  $(DIR_RELEASE)
 
 build-all: build-macos-all build-windows-all
 
