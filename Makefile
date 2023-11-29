@@ -15,6 +15,11 @@ ci-all:
 	@echo "ci-all called"
 	@echo ""
 
+dep-sub:
+	# to pull in gio
+	git submodule update --init --recursive
+	
+
 dep-tools:
 	# icns viewer
 	go install github.com/jackmordaunt/icns/cmd/preview@latest
@@ -25,7 +30,7 @@ dep-tools:
 	# gio command for building cross platform
 	go install gioui.org/cmd/gogio@latest
 
-### Assets
+### ASSETS
 
 assets-convert:
 	# First we copy the PNG we want up to assets folder ( which the packaing uses as truth)
@@ -74,6 +79,7 @@ build-windows-arm64:
 build-windows:
 	rm -rf ${DIR_RELEASE}/windows/$(WINDOWS_ARCH)
 	gogio -target windows -arch $(WINDOWS_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/windows/exe/$(WINDOWS_ARCH)/$(APP_NAME).exe .
+
 
 
 ### PACKAGE
