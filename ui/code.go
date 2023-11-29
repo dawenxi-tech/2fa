@@ -19,19 +19,26 @@ type Cell interface {
 	Layout(gtx layout.Context, th *material.Theme) layout.Dimensions
 }
 
-type AddCode struct {
+type ToolCell struct {
 	click widget.Clickable
 	ctrl  *Controller
+
+	text string
+	icon *widget.Icon
 }
 
-func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if add.click.Clicked() {
-		add.ctrl.page = newAddView()
+func (cell *ToolCell) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	if cell.click.Clicked() {
+		if cell.text == "ADD CODE" {
+			cell.ctrl.page = newAddView()
+		} else {
+			cell.ctrl.page = newSettingsView()
+		}
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 	var c = color.NRGBA{R: 0x81, G: 0x81, B: 0x81, A: 0xFF}
 	dims := layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return add.click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return cell.click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return Background{Color: color.NRGBA{R: 0xFA, G: 0xEA, B: 0xEF, A: 0xFF}}.Layout(gtx,
 				func(gtx layout.Context) layout.Dimensions {
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -41,10 +48,10 @@ func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 							return layout.Flex{Alignment: layout.Middle}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 								return layout.Inset{Right: unit.Dp(10)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-									return addIcon.Layout(gtx, c)
+									return cell.icon.Layout(gtx, c)
 								})
 							}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								label := material.Label(th, unit.Sp(20), "ADD CODE")
+								label := material.Label(th, unit.Sp(20), cell.text)
 								label.Color = c
 								return label.Layout(gtx)
 							}))
@@ -56,7 +63,7 @@ func (add *AddCode) Layout(gtx layout.Context, th *material.Theme) layout.Dimens
 	return dims
 }
 
-type Code struct {
+type CodeCell struct {
 	click  widget.Clickable
 	id     string
 	name   string
@@ -68,14 +75,14 @@ type Code struct {
 	delete widget.Clickable
 }
 
-func (c *Code) initInput() {
+func (c *CodeCell) initInput() {
 	if c.edit && c.input == nil {
 		c.input = &widget.Editor{SingleLine: true, Submit: true}
 		c.input.SetText(c.name)
 	}
 }
 
-func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func (c *CodeCell) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	c.processEvent(gtx)
 	c.initInput()
 	c.onSubmit(gtx)
@@ -133,7 +140,7 @@ func (c *Code) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions 
 	return dims
 }
 
-func (c *Code) processEvent(gtx layout.Context) {
+func (c *CodeCell) processEvent(gtx layout.Context) {
 	if c.delete.Clicked() {
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
@@ -144,7 +151,7 @@ func (c *Code) processEvent(gtx layout.Context) {
 	}
 }
 
-func (c *Code) onSubmit(gtx layout.Context) {
+func (c *CodeCell) onSubmit(gtx layout.Context) {
 	if c.input == nil {
 		return
 	}
@@ -198,7 +205,7 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 	if cv.edit.Clicked() {
 		cv.isEdit = !cv.isEdit
 		if cv.isEdit {
-			cv.cells = append(cv.cells, &AddCode{ctrl: ctrl})
+			cv.cells = append(cv.cells, &ToolCell{ctrl: ctrl, text: "ADD CODE", icon: addIcon}, &ToolCell{ctrl: ctrl, text: "SETTINGS", icon: addIcon})
 		} else {
 			cv.cells = cv.cells[:len(cv.cells)-1]
 		}
@@ -219,7 +226,7 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 
 	if len(cv.cells) > 0 {
 		cv.list.Layout(gtx, len(cv.cells), func(gtx layout.Context, index int) layout.Dimensions {
-			if cell, ok := cv.cells[index].(*Code); ok {
+			if cell, ok := cv.cells[index].(*CodeCell); ok {
 				cell.edit = cv.isEdit
 			}
 			return cv.cells[index].Layout(gtx, th)
@@ -280,10 +287,10 @@ func (cv *CodeView) reloadCodes(ctrl *Controller) {
 	codes := storage.LoadCodes()
 	var cells []Cell
 	for _, v := range codes {
-		cells = append(cells, &Code{id: v.ID, name: v.Name, secret: v.Secret.Val(), ctrl: ctrl})
+		cells = append(cells, &CodeCell{id: v.ID, name: v.Name, secret: v.Secret.Val(), ctrl: ctrl})
 	}
 	if cv.isEdit {
-		cells = append(cells, cv.cells[len(cv.cells)-1])
+		cells = append(cells, cv.cells[len(cv.cells)-2:]...)
 	}
 	cv.cells = cells
 	cv.valid = true
@@ -291,7 +298,7 @@ func (cv *CodeView) reloadCodes(ctrl *Controller) {
 
 func (cv *CodeView) deleteCell(id string) {
 	cv.cells = slices.DeleteFunc(cv.cells, func(cell Cell) bool {
-		if v, ok := cell.(*Code); ok {
+		if v, ok := cell.(*CodeCell); ok {
 			return v.id == id
 		}
 		return false
@@ -301,7 +308,7 @@ func (cv *CodeView) deleteCell(id string) {
 func (cv *CodeView) syncCode() {
 	var codes []storage.Code
 	for _, cell := range cv.cells {
-		if v, ok := cell.(*Code); ok {
+		if v, ok := cell.(*CodeCell); ok {
 			codes = append(codes, storage.Code{ID: v.id, Name: v.name})
 		}
 	}

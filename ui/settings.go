@@ -87,5 +87,5 @@ func (s *SettingsView) saveConfigure(ctrl *Controller) {
 		s.showTray.Value = true
 	}
 	storage.SaveConfigure(conf)
-	ctrl.win.configureChanged()
+	ctrl.win.resetWithConfigure()
 }

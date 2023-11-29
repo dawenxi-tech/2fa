@@ -37,19 +37,12 @@ func (w *Window) Run() {
 	w.showWin()
 
 	go func() {
+		// todo use application did finish launch
 		time.Sleep(time.Second * 2)
-		w.showTray()
+		w.resetWithConfigure()
 	}()
 
 	app.Main()
-}
-
-func (w *Window) showTray() {
-	conf := storage.LoadConfigure()
-	if !conf.ShowTray {
-		return
-	}
-	tray.ShowTray()
 }
 
 func (w *Window) loop() error {
@@ -89,10 +82,10 @@ func (w *Window) showWin() {
 	}()
 }
 
-func (w *Window) configureChanged() {
+func (w *Window) resetWithConfigure() {
 	conf := storage.LoadConfigure()
 	if conf.ShowTray {
-		w.showTray()
+		tray.ShowTray()
 	} else {
 		tray.DismissTray()
 	}
