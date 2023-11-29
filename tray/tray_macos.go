@@ -89,6 +89,9 @@ var settingsIcon []byte
 //go:embed dashboard.png
 var dashboardIcon []byte
 
+//go:embed quit.png
+var quitIcon []byte
+
 //go:embed 2fa-tray.png
 var iconData []byte
 
