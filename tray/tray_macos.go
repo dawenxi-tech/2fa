@@ -67,11 +67,12 @@ dispatch_async(dispatch_get_main_queue(), ^{
 import "C"
 import (
 	_ "embed"
+	"unicode/utf16"
+	"unsafe"
+
 	"github.com/dawenxi-tech/2fa/storage"
 	"github.com/xlzd/gotp"
 	"golang.design/x/clipboard"
-	"unicode/utf16"
-	"unsafe"
 )
 
 //go:embed settings.png
@@ -79,9 +80,6 @@ var settingsIcon []byte
 
 //go:embed dashboard.png
 var dashboardIcon []byte
-
-//go:embed 2fa-tray.png
-var iconData []byte
 
 func show_tray() {
 	C.show_tray()
