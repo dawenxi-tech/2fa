@@ -120,7 +120,7 @@ macos: macos-app macos-dmg
 macos-app:
 	mkdir -p ${DIR_RELEASE}/macos
 	rm -rf ${DIR_RELEASE}/macos/*
-	go build -tags='RELEASE' -o ${DIR_RELEASE}/macos/binary/2fa github.com/dawenxi-tech/2fa
+	go build -tags='RELEASE' -ldflags="-s -w" -o ${DIR_RELEASE}/macos/binary/2fa github.com/dawenxi-tech/2fa
 	go run cmd/macapp/macapp.go -assets ${DIR_RELEASE}/macos/binary \
                                 		-bin 2fa \
                                 		-icon ./assets/2fa.png \
