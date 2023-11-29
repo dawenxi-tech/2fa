@@ -51,7 +51,7 @@ dep-tools:
 	# gio command for building cross platform
 	go install gioui.org/cmd/gogio@latest
 
-	# simple heler
+	# simple file listing help
 	# https://github.com/a8m/tree
 	go install github.com/a8m/tree/cmd/tree@latest
 
@@ -72,7 +72,6 @@ assets-preview:
 ### BUILD
 
 build:
-
 	@echo ""
 	@echo "Building ..."
 
@@ -97,16 +96,16 @@ endif
 
 ifeq ($(OS_GO_OS),linux)
 	@echo ""
-	@echo "Detected Linux but we have no Linux supprt yet ..."
+	@echo "Detected Linux but we have no Linux support yet, so skipping ..."
 endif 
 
 
 build-list:
 	@echo ""
-	@echo "Build listing ..."
+	@echo "Build produced ..."
 	tree  $(DIR_RELEASE)
 
-build-all: build-macos-all build-windows-all
+build-all: build-macos-all build-windows-all 
 
 build-all-del:
 	rm -rf $(DIR_RELEASE)
@@ -122,9 +121,14 @@ build-macos-arm64:
 	MAC_ARCH=arm64 $(MAKE) build-macos
 
 build-macos:
+	@echo ""
+	@echo "Building Darwin $(MAC_ARCH) ..."
+
 	rm -rf ${DIR_RELEASE}/macos/$(MAC_ARCH)
 	#TODO: release tag. cant see how to do it with gio command yet..
 	gogio -target macos -arch $(MAC_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/macos/app/$(MAC_ARCH)/$(APP_NAME).app . 
+
+	$(MAKE) build-list
 
 #### windows 
 
@@ -137,9 +141,12 @@ build-windows-arm64:
 	WINDOWS_ARCH=arm64 $(MAKE) build-windows
 
 build-windows:
+	@echo ""
+	@echo "Building Windows $(WINDOWS_ARCH) ..."
 	rm -rf ${DIR_RELEASE}/windows/$(WINDOWS_ARCH)
 	gogio -target windows -arch $(WINDOWS_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/windows/exe/$(WINDOWS_ARCH)/$(APP_NAME).exe .
 
+	$(MAKE) build-list
 
 
 ### PACKAGE
