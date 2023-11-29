@@ -10,10 +10,6 @@ APP_ICON=./assets-backup/2fa.png
 include env.mk
 
 all:
-	@echo ""
-	@echo "all called on latop..."
-	@echo ""
-
 	# .env
 	$(MAKE) env-print
 
@@ -76,7 +72,9 @@ ifeq ($(OS_GO_OS),windows)
 	@echo ""
 	@echo "Detected Windows so building ..."
 	$(MAKE) dep-tools
-	$(MAKE) build-windows-all
+
+	# Windows cant build windows: https://github.com/gedw99/2fa/actions/runs/7034294593/job/19142004038
+	#$(MAKE) build-windows-all
 	@echo ""
 endif
 
@@ -85,6 +83,8 @@ ifeq ($(OS_GO_OS),darwin)
 	@echo "Detected Windows so building ..."
 	$(MAKE) dep-tools
 	$(MAKE) build-macos-all
+	# Windows on Mac works though.
+	$(MAKE) build-windows-all
 	@echo ""
 endif
 
