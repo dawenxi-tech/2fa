@@ -1,12 +1,14 @@
 package ui
 
 import (
+	"image/color"
+	"runtime"
+
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"image/color"
 )
 
 type Page interface {
@@ -37,15 +39,17 @@ func (ctrl *Controller) Layout(gtx layout.Context, th *material.Theme) layout.Di
 		ctrl.page.Layout(gtx, th, ctrl)
 	}
 
-	// close button
-	layout.NW.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			gtx.Constraints.Max.X = 28
-			return ctrl.click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return icon.Layout(gtx, color.NRGBA{R: 0xFC, G: 0x60, B: 0x5C, A: 0xFF})
+	if runtime.GOOS == "darwin" {
+		// close button
+		layout.NW.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				gtx.Constraints.Max.X = 28
+				return ctrl.click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return icon.Layout(gtx, color.NRGBA{R: 0xFC, G: 0x60, B: 0x5C, A: 0xFF})
+				})
 			})
 		})
-	})
+	}
 
 	return layout.Dimensions{
 		Size: gtx.Constraints.Max,
