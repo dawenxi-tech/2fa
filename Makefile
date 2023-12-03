@@ -1,11 +1,14 @@
+
+
 APP_NAME=2FA
 BUNDLE_ID=tech.dawenxi.2fa
 DIR_RELEASE=./dist/release
 APP_ICON=./assets-backup/2fa.png
 
 # env
-# override the above environment varaibles as needed
+# to override above variables.
 include env.mk
+
 
 all:
 	# .env
@@ -154,6 +157,34 @@ build-windows:
 	gogio -target windows -arch $(WINDOWS_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/windows/exe/$(WINDOWS_ARCH)/$(APP_NAME).exe .
 
 	$(MAKE) build-list
+
+### RUN
+
+run:
+	# With gio its best ro run off a .app or .exe, rather an using ``` go run . ```, 
+	# so that your are seeing all icons and other things work.
+	@echo ""
+	@echo "Running. Assume you done a build already .."
+
+ifeq ($(OS_GO_OS),windows)
+	@echo ""
+	@echo "Detected Windows ..."
+	
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),darwin)
+	@echo ""
+	@echo "Detected Darwin ..."
+	open 
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),linux)
+	@echo ""
+	@echo "Detected Linux ..."
+	@echo ""
+endif  
 
 
 ### PACKAGE
