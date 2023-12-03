@@ -1,11 +1,14 @@
+
+
 APP_NAME=2FA
 BUNDLE_ID=tech.dawenxi.2fa
 DIR_RELEASE=./dist/release
 APP_ICON=./assets-backup/2fa.png
 
 # env
-# override the above environment varaibles as needed
+# to override above variables.
 include env.mk
+
 
 all:
 	# .env
@@ -35,6 +38,9 @@ dep-sub:
 	@echo ""
 	@echo "Installing gio sub module ..."
 	git submodule update --init --recursive
+
+	# and upgrade it. 
+	git submodule update --remote
 	@echo ""
 
 dep-tools:
@@ -45,7 +51,9 @@ dep-tools:
 	# icns viewer for checking they are ok.
 	# https://github.com/JackMordaunt/icns/releases/tag/v2.2.7
 	go install github.com/jackmordaunt/icns/v2/cmd/icnsify@v2.2.7
-	go install github.com/jackmordaunt/icns/cmd/preview@v2.2.7
+	# only works on latest...
+	#go install github.com/jackmordaunt/icns/cmd/preview@v2.2.7
+	go install github.com/jackmordaunt/icns/cmd/preview@latest
 
 	# gio command for building cross platform
 	# https://github.com/gioui/gio-cmd
@@ -55,8 +63,16 @@ dep-tools:
 	# https://github.com/a8m/tree
 	go install github.com/a8m/tree/cmd/tree@latest
 
-	@echo ""
+	# https://github.com/oligot/go-mod-upgrade/releases/tag/v0.9.1
+	go install github.com/oligot/go-mod-upgrade@v0.9.1
 
+	@echo ""
+### MODS
+
+mod-up:
+
+	# for example: https://github.com/gioui/gio/releases/tag/v0.4.1
+	go-mod-upgrade
 
 ### ASSETS
 
@@ -155,6 +171,34 @@ build-windows:
 	gogio -target windows -arch $(WINDOWS_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/windows/exe/$(WINDOWS_ARCH)/$(APP_NAME).exe .
 
 	$(MAKE) build-list
+
+### RUN
+
+run:
+	# With gio its best ro run off a .app or .exe, rather an using ``` go run . ```, 
+	# so that your are seeing all icons and other things work.
+	@echo ""
+	@echo "Running. Assume you done a build already .."
+
+ifeq ($(OS_GO_OS),windows)
+	@echo ""
+	@echo "Detected Windows ..."
+	
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),darwin)
+	@echo ""
+	@echo "Detected Darwin ..."
+	open 
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),linux)
+	@echo ""
+	@echo "Detected Linux ..."
+	@echo ""
+endif  
 
 
 ### PACKAGE
