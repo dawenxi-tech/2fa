@@ -1,5 +1,5 @@
-//go:build darwin && !ios && !nometal && RELEASE
-// +build darwin,!ios,!nometal,RELEASE
+//go:build RELEASE
+// +build RELEASE
 
 package storage
 

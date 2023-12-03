@@ -51,7 +51,7 @@ func (w *Window) loop() error {
 	th := material.NewTheme()
 	var ops op.Ops
 	for {
-		e := <-w.win.Events()
+		e := w.win.NextEvent()
 		switch e := e.(type) {
 		case system.DestroyEvent:
 			return e.Err

@@ -1,4 +1,4 @@
 [submodule "gio"]
 	path = gio
 	url = https://github.com/dawenxi-tech/gio.git
-    branch = v0.3.1
+    branch = v0.4.1

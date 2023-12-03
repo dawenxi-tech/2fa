@@ -9,8 +9,8 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"gioui.org/x/component"
 	"github.com/dawenxi-tech/2fa/storage"
+	"github.com/dawenxi-tech/2fa/ui/component"
 	"github.com/dim13/otpauth/migration"
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"
@@ -194,7 +194,7 @@ func (av *AddView) tryParseGoogleAuthenticatorAppExportQr(qr string) {
 }
 
 func (av *AddView) processEvents(gtx layout.Context, ctrl *Controller) {
-	if av.applyBtn.Clicked() {
+	if av.applyBtn.Clicked(gtx) {
 		if len(av.codes) > 0 {
 			for _, code := range av.codes {
 				if !isCodeUriValid(code) {
@@ -212,7 +212,7 @@ func (av *AddView) processEvents(gtx layout.Context, ctrl *Controller) {
 		ctrl.page = newCodeView()
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
-	if av.cancelBtn.Clicked() {
+	if av.cancelBtn.Clicked(gtx) {
 		if len(av.codes) > 0 {
 			av.codes = nil
 			op.InvalidateOp{}.Add(gtx.Ops)

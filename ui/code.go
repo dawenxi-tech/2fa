@@ -30,7 +30,7 @@ type ToolCell struct {
 }
 
 func (cell *ToolCell) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	if cell.click.Clicked() {
+	if cell.click.Clicked(gtx) {
 		if cell.text == "ADD CODE" {
 			cell.ctrl.page = newAddView()
 		} else {
@@ -143,10 +143,10 @@ func (c *CodeCell) Layout(gtx layout.Context, th *material.Theme) layout.Dimensi
 }
 
 func (c *CodeCell) processEvent(gtx layout.Context) {
-	if c.delete.Clicked() {
+	if c.delete.Clicked(gtx) {
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
-	if c.click.Clicked() {
+	if c.click.Clicked(gtx) {
 		// copy code
 		code := tryGetFA(c.secret)
 		clipboard.WriteOp{Text: code}.Add(gtx.Ops)
@@ -199,12 +199,12 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 		op.InvalidateOp{At: time.Now().Add(time.Second*time.Duration(5-time.Now().Second()%5) + time.Millisecond*10)}.Add(gtx.Ops)
 	}
 
-	if cv.add.Clicked() {
+	if cv.add.Clicked(gtx) {
 		ctrl.page = newAddView()
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
-	if cv.edit.Clicked() {
+	if cv.edit.Clicked(gtx) {
 		cv.isEdit = !cv.isEdit
 		if cv.isEdit {
 			cv.cells = append(cv.cells, &ToolCell{ctrl: ctrl, text: "ADD CODE", icon: addIcon}, &ToolCell{ctrl: ctrl, text: "SETTINGS", icon: addIcon})
@@ -213,14 +213,14 @@ func (cv *CodeView) Layout(gtx layout.Context, th *material.Theme, ctrl *Control
 		}
 	}
 
-	if cv.ok.Clicked() {
+	if cv.ok.Clicked(gtx) {
 		cv.isEdit = false
 		cv.syncCode()
 		cv.valid = false
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
 
-	if cv.cancel.Clicked() {
+	if cv.cancel.Clicked(gtx) {
 		cv.isEdit = false
 		cv.valid = false
 		op.InvalidateOp{}.Add(gtx.Ops)
