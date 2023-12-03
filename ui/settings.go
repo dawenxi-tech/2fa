@@ -28,13 +28,13 @@ func newSettingsView() *SettingsView {
 }
 
 func (s *SettingsView) Layout(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
-	if s.exit.Changed() {
+	if s.exit.Update(gtx) {
 		s.saveConfigure(ctrl)
 	}
-	if s.showTray.Changed() {
+	if s.showTray.Update(gtx) {
 		s.saveConfigure(ctrl)
 	}
-	if s.windowMode.Changed() {
+	if s.windowMode.Update(gtx) {
 		s.saveConfigure(ctrl)
 	}
 	layout.Inset{Top: 40, Left: 10, Right: 10}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

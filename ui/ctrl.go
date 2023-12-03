@@ -57,7 +57,7 @@ func (ctrl *Controller) Layout(gtx layout.Context, th *material.Theme) layout.Di
 }
 
 func (ctrl *Controller) processEvents(gtx layout.Context) {
-	if ctrl.click.Clicked() {
+	if ctrl.click.Clicked(gtx) {
 		ctrl.win.closeWin()
 		op.InvalidateOp{}.Add(gtx.Ops)
 	}
