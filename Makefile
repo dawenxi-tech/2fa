@@ -38,6 +38,9 @@ dep-sub:
 	@echo ""
 	@echo "Installing gio sub module ..."
 	git submodule update --init --recursive
+
+	# and upgrade it. 
+	git submodule update --remote
 	@echo ""
 
 dep-tools:
