@@ -48,7 +48,9 @@ dep-tools:
 	# icns viewer for checking they are ok.
 	# https://github.com/JackMordaunt/icns/releases/tag/v2.2.7
 	go install github.com/jackmordaunt/icns/v2/cmd/icnsify@v2.2.7
-	go install github.com/jackmordaunt/icns/cmd/preview@v2.2.7
+	# only works on latest...
+	#go install github.com/jackmordaunt/icns/cmd/preview@v2.2.7
+	go install github.com/jackmordaunt/icns/cmd/preview@latest
 
 	# gio command for building cross platform
 	# https://github.com/gioui/gio-cmd
@@ -58,8 +60,16 @@ dep-tools:
 	# https://github.com/a8m/tree
 	go install github.com/a8m/tree/cmd/tree@latest
 
-	@echo ""
+	# https://github.com/oligot/go-mod-upgrade/releases/tag/v0.9.1
+	go install github.com/oligot/go-mod-upgrade@v0.9.1
 
+	@echo ""
+### MODS
+
+mod-up:
+
+	# for example: https://github.com/gioui/gio/releases/tag/v0.4.1
+	go-mod-upgrade
 
 ### ASSETS
 
