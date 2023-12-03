@@ -9,8 +9,8 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	//"gioui.org/x/component"
 	"github.com/dawenxi-tech/2fa/storage"
+	"github.com/dawenxi-tech/2fa/ui/component"
 	"github.com/dim13/otpauth/migration"
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"
@@ -23,7 +23,7 @@ import (
 )
 
 type AddView struct {
-	//codeInput *component.TextField
+	codeInput *component.TextField
 	applyBtn  *widget.Clickable
 	cancelBtn *widget.Clickable
 
@@ -34,11 +34,11 @@ type AddView struct {
 
 func newAddView() *AddView {
 	av := &AddView{
-		applyBtn: &widget.Clickable{},
-		//codeInput: &component.TextField{CharLimit: 2048},
+		applyBtn:  &widget.Clickable{},
+		codeInput: &component.TextField{CharLimit: 2048},
 		cancelBtn: &widget.Clickable{},
 	}
-	//av.codeInput.Editor.SingleLine = true
+	av.codeInput.Editor.SingleLine = true
 	return av
 }
 
@@ -101,21 +101,19 @@ func (av *AddView) layoutQR(gtx layout.Context, th *material.Theme, ctrl *Contro
 }
 
 func (av *AddView) layoutTextField(gtx layout.Context, th *material.Theme, ctrl *Controller) layout.Dimensions {
-	//txt := av.codeInput.Text()
-	//code := tryGetFA(txt)
+	txt := av.codeInput.Text()
+	code := tryGetFA(txt)
 	layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{
 			Axis:      layout.Vertical,
 			Alignment: layout.Middle,
 		}.Layout(gtx, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				//return av.codeInput.Layout(gtx, th, "CODE OR URI")
-				return layout.Dimensions{}
+				return av.codeInput.Layout(gtx, th, "CODE OR URI")
 			})
 		}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				//return material.Label(th, unit.Sp(30), code).Layout(gtx)
-				return layout.Dimensions{}
+				return material.Label(th, unit.Sp(30), code).Layout(gtx)
 			})
 		}), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -196,33 +194,33 @@ func (av *AddView) tryParseGoogleAuthenticatorAppExportQr(qr string) {
 }
 
 func (av *AddView) processEvents(gtx layout.Context, ctrl *Controller) {
-	//if av.applyBtn.Clicked() {
-	//	if len(av.codes) > 0 {
-	//		for _, code := range av.codes {
-	//			if !isCodeUriValid(code) {
-	//				continue
-	//			}
-	//			storage.InsertCode(code)
-	//		}
-	//	} else {
-	//		code := av.codeInput.Text()
-	//		if !isCodeUriValid(code) {
-	//			return
-	//		}
-	//		storage.InsertCode(code)
-	//	}
-	//	ctrl.page = newCodeView()
-	//	op.InvalidateOp{}.Add(gtx.Ops)
-	//}
-	//if av.cancelBtn.Clicked() {
-	//	if len(av.codes) > 0 {
-	//		av.codes = nil
-	//		op.InvalidateOp{}.Add(gtx.Ops)
-	//		return
-	//	}
-	//	ctrl.page = newCodeView()
-	//	op.InvalidateOp{}.Add(gtx.Ops)
-	//}
+	if av.applyBtn.Clicked(gtx) {
+		if len(av.codes) > 0 {
+			for _, code := range av.codes {
+				if !isCodeUriValid(code) {
+					continue
+				}
+				storage.InsertCode(code)
+			}
+		} else {
+			code := av.codeInput.Text()
+			if !isCodeUriValid(code) {
+				return
+			}
+			storage.InsertCode(code)
+		}
+		ctrl.page = newCodeView()
+		op.InvalidateOp{}.Add(gtx.Ops)
+	}
+	if av.cancelBtn.Clicked(gtx) {
+		if len(av.codes) > 0 {
+			av.codes = nil
+			op.InvalidateOp{}.Add(gtx.Ops)
+			return
+		}
+		ctrl.page = newCodeView()
+		op.InvalidateOp{}.Add(gtx.Ops)
+	}
 }
 
 func isCodeUriValid(uri string) bool {
