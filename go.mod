@@ -1,6 +1,6 @@
 module github.com/dawenxi-tech/2fa
 
-go 1.21.3
+go 1.21.4
 
 require (
 	gioui.org v0.3.1
