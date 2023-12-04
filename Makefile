@@ -18,9 +18,10 @@ all:
 
 	$(MAKE) build
 
-ci-all: 
+ci-build: 
+	# only run in ci on a branch push
 	@echo ""
-	@echo "ci-all called ..."
+	@echo "ci-build called ..."
 	@echo ""
 
 	# .ci
@@ -32,6 +33,15 @@ ci-all:
 
 	$(MAKE) all
 
+ci-release: 
+	# only run in ci on a tag push !
+	@echo ""
+	@echo "ci-release called ..."
+	@echo ""
+
+	$(MAKE) ci-build
+
+	$(MAKE) pack
 
 
 dep-sub:
@@ -175,7 +185,7 @@ build-windows:
 ### RUN
 
 run:
-	# With gio its best ro run off a .app or .exe, rather an using ``` go run . ```, 
+	# With gio its best to run off a .app or .exe, rather an using ``` go run . ```, 
 	# so that your are seeing all icons and other things work.
 	@echo ""
 	@echo "Running. Assume you done a build already .."
@@ -190,7 +200,7 @@ endif
 ifeq ($(OS_GO_OS),darwin)
 	@echo ""
 	@echo "Detected Darwin ..."
-	open 
+
 	@echo ""
 endif
 
@@ -198,19 +208,61 @@ ifeq ($(OS_GO_OS),linux)
 	@echo ""
 	@echo "Detected Linux ..."
 	@echo ""
-endif  
+endif
+
+run-macos-amd64:
+	MAC_ARCH=amd64 $(MAKE) run-macos
+
+run-macos-arm64:
+	MAC_ARCH=arm64 $(MAKE) run-macos
+
+run-macos:
+	open ${DIR_RELEASE}/macos/app/$(MAC_ARCH)/$(APP_NAME).app
 
 
 ### PACKAGE
 
 # into DMG and MSI ( must be run on correct OS )
 
-pack-all: pack-macos pack-windows
+
+pack:
+	@echo ""
+	@echo "Packaging phase ..."
+
+ifeq ($(OS_GO_OS),windows)
+	@echo ""
+	@echo "Detected Windows ... Add later when ready."
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),darwin)
+	@echo ""
+	@echo "Detected Darwin ..."
+	$(MAKE) pack-macos-all
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),linux)
+	@echo ""
+	@echo "Detected Linux ... Add later when ready."
+	@echo ""
+endif 
+
+pack-all: pack-macos-all pack-windows-all
+
+pack-macos-all: pack-macos-amd64 pack-macos-arm64
+
+pack-macos-amd64:
+	MAC_ARCH=amd64 $(MAKE) pack-macos
+
+pack-macos-arm64:
+	MAC_ARCH=arm64 $(MAKE) pack-macos
 
 pack-macos:
-	# arm64 for now. Refactor like the build is, when working.
+	# need this
+	brew install create-dmg
 
-	rm -rf ${DIR_RELEASE}/macos/dmg/arm64
+	rm -rf ${DIR_RELEASE}/macos/dmg/$(MAC_ARCH)
 
 	create-dmg \
           --volname "2FA Installer" \
@@ -222,12 +274,12 @@ pack-macos:
           --hide-extension "2FA.app" \
           --app-drop-link 600 185 \
           "2FA-Installer.dmg" \
-          ${DIR_RELEASE}/macos/app/arm64
-	mkdir -p ${DIR_RELEASE}/macos/dmg/arm64
+          ${DIR_RELEASE}/macos/app/$(MAC_ARCH)
+	mkdir -p ${DIR_RELEASE}/macos/dmg/$(MAC_ARCH)
 
-	mv 2FA-Installer.dmg ${DIR_RELEASE}/macos/dmg/arm64			
+	mv 2FA-Installer.dmg ${DIR_RELEASE}/macos/dmg/$(MAC_ARCH)			
 
-pack-windows:
+pack-windows-all:
 	# todo when windows packager worked out.
 
 
