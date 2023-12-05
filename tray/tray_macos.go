@@ -75,6 +75,7 @@ dispatch_async(dispatch_get_main_queue(), ^{
 import "C"
 import (
 	_ "embed"
+	"slices"
 	"unicode/utf16"
 	"unsafe"
 
@@ -107,6 +108,7 @@ func dismiss_tray() {
 func export_codes() C.CFTypeRef {
 	arr := C.newNSArray()
 	codes := storage.LoadCodes()
+	slices.Reverse(codes)
 	for _, code := range codes {
 		C.array_add_object(arr, stringToNSString(code.Name), stringToNSString(code.Secret.Val()))
 	}
