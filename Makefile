@@ -43,6 +43,8 @@ ci-release:
 
 	$(MAKE) pack
 
+	$(MAKE) release
+
 
 dep-sub:
 	@echo ""
@@ -73,8 +75,11 @@ dep-tools:
 	# https://github.com/a8m/tree
 	go install github.com/a8m/tree/cmd/tree@latest
 
+	# easy way to migrate goalng code to latest dependencies
 	# https://github.com/oligot/go-mod-upgrade/releases/tag/v0.9.1
 	go install github.com/oligot/go-mod-upgrade@v0.9.1
+
+
 
 	@echo ""
 ### MODS
@@ -281,6 +286,42 @@ pack-macos:
 
 pack-windows-all:
 	# todo when windows packager worked out.
+
+### RELEASE
+# need https://github.com/cli/cli which is called "gh". Yeah well done with naming :)
+
+
+release:
+	@echo ""
+	@echo "Release phase ..."
+
+ifeq ($(OS_GO_OS),windows)
+	@echo ""
+	@echo "Detected Windows ..."
+	$(MAKE) release-windows
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),darwin)
+	@echo ""
+	@echo "Detected Darwin ..."
+	$(MAKE) release-macos
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),linux)
+	@echo ""
+	@echo "Detected Linux ..."
+	$(MAKE) release-linux
+	@echo ""
+endif 
+
+release-macos:
+	brew install gh
+release-windows:
+	scoop install gh
+release-linux:
+	brew install gh
 
 
 
