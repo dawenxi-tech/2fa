@@ -18,8 +18,10 @@ all:
 
 	$(MAKE) build
 
+	$(MAKE) pack
+
 ci-build: 
-	# only run in ci on a branch push
+	# only runs in ci on a branch push
 	@echo ""
 	@echo "ci-build called ..."
 	@echo ""
@@ -34,14 +36,12 @@ ci-build:
 	$(MAKE) all
 
 ci-release: 
-	# only run in ci on a tag push !
+	# only runs in ci on a tag push !
 	@echo ""
 	@echo "ci-release called ..."
 	@echo ""
 
 	$(MAKE) ci-build
-
-	$(MAKE) pack
 
 	$(MAKE) release
 
@@ -79,9 +79,16 @@ dep-tools:
 	# https://github.com/oligot/go-mod-upgrade/releases/tag/v0.9.1
 	go install github.com/oligot/go-mod-upgrade@v0.9.1
 
-
-
 	@echo ""
+
+### DIST
+
+dist-list:
+	@echo ""
+	@echo "Dist folder has ..."
+	tree  -l -a -C $(DIR_RELEASE)
+	@echo ""
+
 ### MODS
 
 mod-up:
@@ -136,14 +143,11 @@ ifeq ($(OS_GO_OS),linux)
 	@echo ""
 	@echo "Detected Linux but we have no Linux support yet, so skipping ..."
 	@echo ""
-endif 
-
-
-build-list:
+endif
 	@echo ""
-	@echo "Build produced ..."
-	tree  -l -a -C $(DIR_RELEASE)
-	@echo ""
+	$(MAKE) dist-list
+	@echo "Building phase done ..."
+
 
 build-all: build-macos-all build-windows-all 
 
@@ -168,7 +172,7 @@ build-macos:
 	#TODO: release tag. cant see how to do it with gio command yet..
 	gogio -target macos -arch $(MAC_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/macos/app/$(MAC_ARCH)/$(APP_NAME).app . 
 
-	$(MAKE) build-list
+	$(MAKE) dist-list
 
 #### windows 
 
@@ -186,7 +190,7 @@ build-windows:
 	rm -rf ${DIR_RELEASE}/windows/$(WINDOWS_ARCH)
 	gogio -target windows -arch $(WINDOWS_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/windows/exe/$(WINDOWS_ARCH)/$(APP_NAME).exe .
 
-	$(MAKE) build-list
+	$(MAKE) dist-list
 
 ### RUN
 
@@ -253,7 +257,7 @@ ifeq ($(OS_GO_OS),linux)
 	@echo "Detected Linux ... Add later when ready."
 	@echo ""
 endif
-	$(MAKE) build-list
+	$(MAKE) dist-list
 	@echo ""
 	@echo "Packaging phase done ..."
 	@echo ""
@@ -295,8 +299,9 @@ pack-windows-all:
 
 
 ### RELEASE
-# need https://github.com/cli/cli which is called "gh". Yeah well done with naming :)
 
+# to github tagged releases
+# need https://github.com/cli/cli which is called "gh". Yeah well done with naming :)
 
 release:
 	@echo ""
@@ -322,7 +327,7 @@ ifeq ($(OS_GO_OS),linux)
 	$(MAKE) release-linux
 	@echo ""
 endif
-	$(MAKE) build-list
+	$(MAKE) dist-list
 	@echo ""
 	@echo "Release phase done ..."
 	@echo ""
@@ -336,35 +341,6 @@ release-linux:
 	# no idea what to do here for linux...
 	#brew install gh
 
-
-
-### OLD below. Kept for refernce until above works...
-
-macos: macos-app macos-dmg
-
-macos-app:
-	mkdir -p ${DIR_RELEASE}/macos
-	rm -rf ${DIR_RELEASE}/macos/*
-	go build -tags='RELEASE' -ldflags="-s -w" -o ${DIR_RELEASE}/macos/binary/2fa github.com/dawenxi-tech/2fa
-	go run cmd/macapp/macapp.go -assets ${DIR_RELEASE}/macos/binary \
-                                		-bin 2fa \
-                                		-icon ./assets/2fa.png \
-                                		-identifier ${BUNDLE_ID} \
-                                		-name ${APP_NAME} \
-                                		-o dist/release/macos/app
-
-macos-dmg:
-	rm -rf ${DIR_RELEASE}/macos/dmg
-	create-dmg \
-          --volname "2FA Installer" \
-          --volicon "./assets/2fa.icns" \
-          --window-pos 200 120 \
-          --window-size 800 400 \
-          --icon-size 100 \
-          --icon "2FA.app" 200 190 \
-          --hide-extension "2FA.app" \
-          --app-drop-link 600 185 \
-          "2FA-Installer.dmg" \
-          ${DIR_RELEASE}/macos/app
-	mkdir ${DIR_RELEASE}/macos/dmg
-	mv 2FA-Installer.dmg ${DIR_RELEASE}/macos/dmg/
+release-using-tag:
+	# for dev to locally make a git tag and git tag, so that CI does a release.
+	
