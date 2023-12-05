@@ -143,6 +143,7 @@ build-list:
 	@echo ""
 	@echo "Build produced ..."
 	tree  -l -a -C $(DIR_RELEASE)
+	@echo ""
 
 build-all: build-macos-all build-windows-all 
 
@@ -251,12 +252,16 @@ ifeq ($(OS_GO_OS),linux)
 	@echo ""
 	@echo "Detected Linux ... Add later when ready."
 	@echo ""
-endif 
+endif
+	$(MAKE) build-list
+	@echo ""
+	@echo "Packaging phase done ..."
+	@echo ""
 
 pack-all: pack-macos-all pack-windows-all
 
 pack-macos-all: pack-macos-amd64 pack-macos-arm64
-
+	
 pack-macos-amd64:
 	MAC_ARCH=amd64 $(MAKE) pack-macos
 
@@ -287,6 +292,8 @@ pack-macos:
 pack-windows-all:
 	# todo when windows packager worked out.
 
+
+
 ### RELEASE
 # need https://github.com/cli/cli which is called "gh". Yeah well done with naming :)
 
@@ -314,14 +321,20 @@ ifeq ($(OS_GO_OS),linux)
 	@echo "Detected Linux ..."
 	$(MAKE) release-linux
 	@echo ""
-endif 
+endif
+	$(MAKE) build-list
+	@echo ""
+	@echo "Release phase done ..."
+	@echo ""
 
 release-macos:
 	brew install gh
 release-windows:
-	scoop install gh
+	# no idea what to do here for windows ...
+	#scoop install gh
 release-linux:
-	brew install gh
+	# no idea what to do here for linux...
+	#brew install gh
 
 
 
