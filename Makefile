@@ -75,7 +75,7 @@ ifeq ($(OS_GO_OS),darwin)
 	# see: https://gioui.org/doc/install/macos
 
 	@echo ""
-	@echo "Installing create-dmg with brew ..."
+	@echo "Installing create-dmg with brew, so that we can do packaging on Mac."
 	@echo ""
 	brew install create-dmg
 	@echo ""
@@ -88,12 +88,12 @@ ifeq ($(OS_GO_OS),linux)
 	# from: https://github.com/g45t345rt/g45w/actions/runs/6285743746/job/17068447935
 
 	@echo ""
-	@echo "Installing various things so that gio can buuild and run on Linux."
+	@echo "Installing various things, so that gio can build and run on Linux."
 	@echo ""
 	sudo apt install gcc pkg-config libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon-x11-dev libgles2-mesa-dev libegl1-mesa-dev libffi-dev libxcursor-dev libvulkan-dev
 
 	@echo ""
-	@echo "Installing pkg2appimage with wget, so that packaging appimage tools are available."
+	@echo "Installing pkg2appimage with wget, so that we can do packaging with appimage on Linux."
 	@echo ""
 	wget -c $(shell wget -q https://api.github.com/repos/AppImageCommunity/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
 	chmod +x ./pkg2appimage-*.AppImage
@@ -104,7 +104,7 @@ ifeq ($(OS_GO_OS),linux)
 endif
 	
 	@echo ""
-	@echo "Installing icns maker and icns viewer using go install ..."
+	@echo "Installing icns maker and icns viewer using go install, so that we can generate icons."
 	@echo ""
 	# https://github.com/JackMordaunt/icns/releases/tag/v2.2.7
 	go install github.com/jackmordaunt/icns/v2/cmd/icnsify@v2.2.7
@@ -113,21 +113,20 @@ endif
 	go install github.com/jackmordaunt/icns/cmd/preview@latest
 
 	@echo ""
-	@echo "Installing gio builder using go install ..."
+	@echo "Installing gio builder using go install, so that we can build gio apps."
 	@echo ""
 	# https://github.com/gioui/gio-cmd
 	go install gioui.org/cmd/gogio@latest
 
 	@echo ""
-	@echo "Installing cross OS tree file printer using go install ..."
+	@echo "Installing cross OS tree file printer using go install, so that we can see what we are making easily."
 	@echo ""
 	# https://github.com/a8m/tree
 	go install github.com/a8m/tree/cmd/tree@latest
 
 	@echo ""
-	@echo "Installing cross OS go modules updater using go install ..."
+	@echo "Installing cross OS go modules updater using go install, so that we can do golang module updates easily."
 	@echo ""
-	
 	# https://github.com/oligot/go-mod-upgrade/releases/tag/v0.9.1
 	go install github.com/oligot/go-mod-upgrade@v0.9.1
 
@@ -146,10 +145,12 @@ dist-list:
 ### MODS
 
 mod-up:
-
 	# for example: https://github.com/gioui/gio/releases/tag/v0.4.1
 	go-mod-upgrade
-
+mod-up-force:
+	# so that in CI we can force an upgrade as part of the buuld.
+	go-mod-upgrade -f
+	
 ### ASSETS
 
 assets-convert:
