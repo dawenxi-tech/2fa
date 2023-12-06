@@ -16,6 +16,8 @@ all:
 
 	$(MAKE) dep-sub
 
+	$(MAKE) dep-tools
+
 	$(MAKE) build
 
 	$(MAKE) pack
@@ -57,25 +59,68 @@ dep-sub:
 
 dep-tools:
 	@echo ""
-	@echo "Installing tools ..."
+	@echo "Dep tools phase ..."
 
-	# icns maker doing png to icns
-	# icns viewer for checking they are ok.
+ifeq ($(OS_GO_OS),windows)
+	@echo ""
+	@echo "Detected Windows ..."
+	# see: https://gioui.org/doc/install/windows
+	@echo "None needed for Windows."
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),darwin)
+	@echo ""
+	@echo "Detected Darwin ..."
+	# see: https://gioui.org/doc/install/macos
+
+	@echo ""
+	@echo "Installing create-dmg with brew ..."
+	@echo ""
+	brew install create-dmg
+	@echo ""
+endif
+
+ifeq ($(OS_GO_OS),linux)
+	@echo ""
+	@echo "Detected Linux ..."
+
+	@echo ""
+	@echo "Installing pkg2appimage with wget, so that linxu appimage tools are available ..."
+	@echo ""
+	wget -c $(shell wget -q https://api.github.com/repos/AppImageCommunity/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
+	chmod +x ./pkg2appimage-*.AppImage
+	mkdir -p dist
+	mv ./pkg2appimage-*.AppImage ./dist/
+
+	@echo ""
+endif
+	
+	@echo ""
+	@echo "Installing icns maker and icns viewer using go install ..."
+	@echo ""
 	# https://github.com/JackMordaunt/icns/releases/tag/v2.2.7
 	go install github.com/jackmordaunt/icns/v2/cmd/icnsify@v2.2.7
 	# only works on latest...
 	#go install github.com/jackmordaunt/icns/cmd/preview@v2.2.7
 	go install github.com/jackmordaunt/icns/cmd/preview@latest
 
-	# gio command for building cross platform
+	@echo ""
+	@echo "Installing gio builder using go install ..."
+	@echo ""
 	# https://github.com/gioui/gio-cmd
 	go install gioui.org/cmd/gogio@latest
 
-	# simple file listing help
+	@echo ""
+	@echo "Installing cross OS tree file printer using go install ..."
+	@echo ""
 	# https://github.com/a8m/tree
 	go install github.com/a8m/tree/cmd/tree@latest
 
-	# easy way to migrate goalng code to latest dependencies
+	@echo ""
+	@echo "Installing cross OS go modules updater using go install ..."
+	@echo ""
+	
 	# https://github.com/oligot/go-mod-upgrade/releases/tag/v0.9.1
 	go install github.com/oligot/go-mod-upgrade@v0.9.1
 
@@ -88,6 +133,7 @@ ifeq ($(OS_GO_OS), linux)
 	mv ./pkg2appimage-*.AppImage ./dist/
 endif
 
+	@echo "Dep tools phase done ..."
 	@echo ""
 
 ### DIST
@@ -132,8 +178,6 @@ build:
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
 	@echo "Detected Windows ..."
-	$(MAKE) dep-tools
-
 	# Windows cant build tray code: https://github.com/gedw99/2fa/actions/runs/7034294593/job/19142004038
 	@echo "Skipping Windows until we support Windows tray ..."
 	#$(MAKE) build-windows-all
@@ -143,7 +187,6 @@ endif
 ifeq ($(OS_GO_OS),darwin)
 	@echo ""
 	@echo "Detected Darwin so building ..."
-	$(MAKE) dep-tools
 	$(MAKE) build-macos-all
 	@echo ""
 endif
@@ -151,7 +194,6 @@ endif
 ifeq ($(OS_GO_OS),linux)
 	@echo ""
 	@echo "Detected Linux but"
-	$(MAKE) dep-tools
 	$(MAKE) build-linux-all
 	@echo ""
 endif
@@ -309,8 +351,7 @@ pack-macos-arm64:
 	MAC_ARCH=arm64 $(MAKE) pack-macos
 
 pack-macos:
-	# need this
-	brew install create-dmg
+
 
 	rm -rf ${DIR_RELEASE}/macos/dmg/$(MAC_ARCH)
 
