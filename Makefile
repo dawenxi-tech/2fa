@@ -79,6 +79,15 @@ dep-tools:
 	# https://github.com/oligot/go-mod-upgrade/releases/tag/v0.9.1
 	go install github.com/oligot/go-mod-upgrade@v0.9.1
 
+	# download linux appimage build tools
+ifeq ($(OS_GO_OS), linux)
+	echo 'download pkg2appimage...'
+	wget -c $(shell wget -q https://api.github.com/repos/AppImageCommunity/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
+	chmod +x ./pkg2appimage-*.AppImage
+	mkdir -p dist
+	mv ./pkg2appimage-*.AppImage ./dist/
+endif
+
 	@echo ""
 
 ### DIST
@@ -141,7 +150,9 @@ endif
 
 ifeq ($(OS_GO_OS),linux)
 	@echo ""
-	@echo "Detected Linux but we have no Linux support yet, so skipping ..."
+	@echo "Detected Linux but"
+	$(MAKE) dep-tools
+	$(MAKE) build-linux-all
 	@echo ""
 endif
 	@echo ""
@@ -149,7 +160,7 @@ endif
 	@echo "Building phase done ..."
 
 
-build-all: build-macos-all build-windows-all 
+build-all: build-macos-all build-windows-all build-linux-all
 
 build-all-del:
 	rm -rf $(DIR_RELEASE)
@@ -189,6 +200,31 @@ build-windows:
 	@echo "Building Windows $(WINDOWS_ARCH) ..."
 	rm -rf ${DIR_RELEASE}/windows/$(WINDOWS_ARCH)
 	gogio -target windows -arch $(WINDOWS_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/windows/exe/$(WINDOWS_ARCH)/$(APP_NAME).exe .
+
+	$(MAKE) dist-list
+
+
+### Linux
+build-linux-all: build-linux-amd64 build-linux-arm64
+
+build-linux-amd64:
+	LINUX_ARCH=amd64 $(MAKE) build-linux
+
+build-linux-arm64:
+	LINUX_ARCH=arm64 $(MAKE) build-linux
+
+build-linux:
+	@echo ""
+	@echo "Building Linux $(LINUX_ARCH) ..."
+
+	rm -rf ${DIR_RELEASE}/linux/$(LINUX_ARCH)
+	mkdir -p ${DIR_RELEASE}/linux/$(LINUX_ARCH)
+
+	go build -tags='RELEASE' -o ${DIR_RELEASE}/linux/$(LINUX_ARCH)/$(APP_NAME).exe . 
+
+	cp 2fa-appimage.yml ${DIR_RELEASE}/linux/$(LINUX_ARCH)
+	cp assets/2fa.png ${DIR_RELEASE}/linux/$(LINUX_ARCH)
+	cd ${DIR_RELEASE}/linux/$(LINUX_ARCH); ../../../pkg2appimage-*.AppImage 2fa-appimage.yml
 
 	$(MAKE) dist-list
 

@@ -1,7 +1,7 @@
 
 # os
 OS_GO_BIN_NAME=go
-ifeq (uname),Windows)
+ifeq ($(shell uname),Windows)
 	OS_GO_BIN_NAME=go.exe
 endif
 OS_GO_OS=$(shell $(OS_GO_BIN_NAME) env GOOS)

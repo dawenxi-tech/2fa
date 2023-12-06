@@ -1,0 +1,15 @@
+app: 2FA
+
+script:
+  - cp ../../2FA.exe usr/bin/
+  - cp ../../2fa.png 2fa.png
+  - cat > 2fa.desktop << EOF
+  - [Desktop Entry]
+  - Type=Application
+  - Name=2FA
+  - Icon=2fa
+  - Exec=2FA.exe
+  - Categories=Application;
+  - Comment=2fa desktop client.
+  - EOF
+
