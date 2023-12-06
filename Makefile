@@ -85,8 +85,15 @@ ifeq ($(OS_GO_OS),linux)
 	@echo ""
 	@echo "Detected Linux ..."
 
+	# from: https://github.com/g45t345rt/g45w/actions/runs/6285743746/job/17068447935
+
 	@echo ""
-	@echo "Installing pkg2appimage with wget, so that linxu appimage tools are available ..."
+	@echo "Installing various things so that gio can buuild and run on Linux."
+	@echo ""
+	sudo apt install gcc pkg-config libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon-x11-dev libgles2-mesa-dev libegl1-mesa-dev libffi-dev libxcursor-dev libvulkan-dev
+
+	@echo ""
+	@echo "Installing pkg2appimage with wget, so that packaging appimage tools are available."
 	@echo ""
 	wget -c $(shell wget -q https://api.github.com/repos/AppImageCommunity/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
 	chmod +x ./pkg2appimage-*.AppImage
