@@ -1,0 +1,47 @@
+# from https://github.com/g45t345rt/g45w/blob/master/.github/workflows/build_android.yml
+# will adjust once i see this works
+
+name: Build Android
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.19.10
+
+      - name: Install gogio tool
+        run: go install gioui.org/cmd/gogio@latest
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Setup NDK
+        run: sdkmanager ndk-bundle
+
+      - name: Build android arm64
+        run: bash build_gio.sh android arm64
+
+      - name: Build android arm
+        run: bash build_gio.sh android arm
+
+      - name: Archive build
+        uses: actions/upload-artifact@v3
+        with:
+          name: Build Android
+          path: build
