@@ -131,15 +131,7 @@ endif
 	# https://github.com/oligot/go-mod-upgrade/releases/tag/v0.9.1
 	go install github.com/oligot/go-mod-upgrade@v0.9.1
 
-	# download linux appimage build tools
-ifeq ($(OS_GO_OS), linux)
-	echo 'download pkg2appimage...'
-	wget -c $(shell wget -q https://api.github.com/repos/AppImageCommunity/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
-	chmod +x ./pkg2appimage-*.AppImage
-	mkdir -p dist
-	mv ./pkg2appimage-*.AppImage ./dist/
-endif
-
+	@echo ""
 	@echo "Dep tools phase done ..."
 	@echo ""
 
