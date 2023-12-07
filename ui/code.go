@@ -87,7 +87,7 @@ func (c *CodeCell) initInput() {
 func (c *CodeCell) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	c.processEvent(gtx)
 	c.initInput()
-	c.onSubmit(gtx)
+	c.handleInput(gtx)
 
 	backgroundColor := cellBackgroundColor
 	layoutFn := ButtonLayoutStyle{CornerRadius: 4, Background: backgroundColor, Button: &c.click}.Layout
@@ -153,18 +153,12 @@ func (c *CodeCell) processEvent(gtx layout.Context) {
 	}
 }
 
-func (c *CodeCell) onSubmit(gtx layout.Context) {
+func (c *CodeCell) handleInput(gtx layout.Context) {
 	if c.input == nil {
 		return
 	}
-	for _, event := range c.input.Events() {
-		switch e := event.(type) {
-		case widget.SubmitEvent:
-			c.name = e.Text
-			c.input = &widget.Editor{SingleLine: true, Submit: true}
-			c.input.SetText(e.Text)
-			return
-		}
+	for range c.input.Events() {
+		c.name = c.input.Text()
 	}
 }
 
