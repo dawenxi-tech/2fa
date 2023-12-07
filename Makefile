@@ -6,6 +6,7 @@ DIR_RELEASE=./dist/release
 APP_ICON=./assets-backup/2fa.png
 
 
+
 # env
 # to override above variables.
 include env.mk
