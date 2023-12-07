@@ -18,6 +18,7 @@ endif
 OS_GIT_BIN_WHICH=$(shell which $(OS_GIT_BIN_NAME))
 OS_GIT_BIN_WHICH_VERSION=$(shell $(OS_GIT_BIN_NAME) -v)
 
+OS_GIT_FSPATH = $(shell pwd)
 OS_GIT_SHA    = $(shell cd $(OS_GIT_FSPATH) && git rev-parse --short HEAD)
 OS_GIT_TAG    = $(shell cd $(OS_GIT_FSPATH) && git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 OS_GIT_DIRTY  = $(shell cd $(OS_GIT_FSPATH) && test -n "`git status --porcelain`" && echo "dirty" || echo "clean")
@@ -38,16 +39,27 @@ BUNDLE_ID=tech.someone.2fa
 DIR_RELEASE=./dist/release
 APP_ICON=./assets-backup/something.png
 
+# Version
+APP_VERSION=$(shell git-describe-semver -dir $(OS_GIT_FSPATH) --fallback v0.0.0)
+APP_VERSION_LDFLAGS="-X 'github.com/dawenxi-tech/2fa/main.Version=$(APP_VERSION)'"
+
 # Github CI env variables: https://docs.github.com/en/actions/learn-github-actions/variables
 
-env-print:
+env-init:
+	@echo ""
+	@echo "Installing cross OS go semver tool using go install, so that we can get verion info easily."
+	@echo ""
+	# https://github.com/choffmeister/git-describe-semver/releases/tag/v0.3.11
+	go install github.com/choffmeister/git-describe-semver@v0.3.11
+
+env-print: env-init
 
 	@echo ""
 	@echo "-- .env --"
 
 	@echo "--- os ---"
 	@echo "---- bin ----"
-	@echo "OS_GO_BIN_NAME:             $(OS_GO_BIN_NAME)"
+	@echo "OS_GO_BIN_NAME:              $(OS_GO_BIN_NAME)"
 	@echo "---- var ----"
 	@echo "OS_GO_OS:                    $(OS_GO_OS)"
 	@echo "OS_GO_VERSION:               $(OS_GO_VERSION)"
@@ -59,7 +71,8 @@ env-print:
 	@echo "OS_GIT_BIN_NAME:             $(OS_GIT_BIN_NAME)"
 	@echo "OS_GIT_BIN_WHICH:            $(OS_GIT_BIN_WHICH)"
 	@echo "OS_GIT_BIN_WHICH_VERSION:    $(OS_GIT_BIN_WHICH_VERSION)"
-	@echo "---- cvar ----"
+	@echo "---- var ----"
+	@echo "OS_GIT_FSPATH:               $(OS_GIT_FSPATH)"
 	@echo "OS_GIT_SHA:                  $(OS_GIT_SHA)"
 	@echo "OS_GIT_TAG:                  $(OS_GIT_TAG)"
 	@echo "OS_GIT_DIRTY:                $(OS_GIT_DIRTY)"
@@ -70,5 +83,12 @@ env-print:
 	@echo "BUNDLE_ID:                   $(BUNDLE_ID)"
 	@echo "DIR_RELEASE:                 $(DIR_RELEASE)"
 	@echo "APP_ICON:                    $(APP_ICON)"
+	@echo ""
+
+	@echo ""
+	@echo "--- version ---"
+	@echo "APP_VERSION:                 $(APP_VERSION)"
+	@echo "APP_VERSION_LDFLAGS:         $(APP_VERSION_LDFLAGS)"
+	
 	@echo ""
 

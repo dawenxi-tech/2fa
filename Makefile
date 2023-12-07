@@ -5,6 +5,7 @@ BUNDLE_ID=tech.dawenxi.2fa
 DIR_RELEASE=./dist/release
 APP_ICON=./assets-backup/2fa.png
 
+
 # env
 # to override above variables.
 include env.mk
@@ -134,6 +135,7 @@ endif
 	@echo "Dep tools phase done ..."
 	@echo ""
 
+
 ### DIST
 
 dist-list:
@@ -174,6 +176,9 @@ assets-preview:
 build:
 	@echo ""
 	@echo "Building phase ..."
+
+# TODO add versioning like go build -ldflags="-X 'github.com/dawenxi-tech/2fa/commands.Version=$(git describe --tags)'" -o "2fa-$(git describe --tags)-windows-amd64.exe"
+# work out how to do with gio !
 
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
@@ -222,8 +227,9 @@ build-macos:
 	@echo "Building Darwin $(MAC_ARCH) ..."
 
 	rm -rf ${DIR_RELEASE}/macos/$(MAC_ARCH)
-	#TODO: release tag. cant see how to do it with gio command yet..
-	gogio -target macos -arch $(MAC_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/macos/app/$(MAC_ARCH)/$(APP_NAME).app . 
+
+	# NOTE: Not sure if we want the version to be part of the output name. I think not.
+	gogio -target macos -arch $(MAC_ARCH) -appid $(BUNDLE_ID) -tags='RELEASE' -ldflags $(APP_VERSION_LDFLAGS) -icon $(APP_ICON) -o ${DIR_RELEASE}/macos/app/$(MAC_ARCH)/$(APP_NAME).app . 
 
 	$(MAKE) dist-list
 
@@ -241,7 +247,7 @@ build-windows:
 	@echo ""
 	@echo "Building Windows $(WINDOWS_ARCH) ..."
 	rm -rf ${DIR_RELEASE}/windows/$(WINDOWS_ARCH)
-	gogio -target windows -arch $(WINDOWS_ARCH) -appid $(BUNDLE_ID) -icon $(APP_ICON) -o ${DIR_RELEASE}/windows/exe/$(WINDOWS_ARCH)/$(APP_NAME).exe .
+	gogio -target windows -arch $(WINDOWS_ARCH) -appid $(BUNDLE_ID) -ldflags $(APP_VERSION_LDFLAGS) -icon $(APP_ICON) -o ${DIR_RELEASE}/windows/exe/$(WINDOWS_ARCH)/$(APP_NAME).exe .
 
 	$(MAKE) dist-list
 
@@ -262,7 +268,8 @@ build-linux:
 	rm -rf ${DIR_RELEASE}/linux/$(LINUX_ARCH)
 	mkdir -p ${DIR_RELEASE}/linux/$(LINUX_ARCH)
 
-	go build -tags='RELEASE' -o ${DIR_RELEASE}/linux/$(LINUX_ARCH)/$(APP_NAME).exe . 
+	# gogio seems to not support linux desktop builds, so building with go.
+	go build -tags='RELEASE' -ldflags $(APP_VERSION_LDFLAGS) -o ${DIR_RELEASE}/linux/$(LINUX_ARCH)/$(APP_NAME).exe . 
 
 	cp 2fa-appimage.yml ${DIR_RELEASE}/linux/$(LINUX_ARCH)
 	cp assets/2fa.png ${DIR_RELEASE}/linux/$(LINUX_ARCH)
