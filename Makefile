@@ -11,6 +11,8 @@ APP_ICON=./assets-backup/2fa.png
 # to override above variables.
 include env.mk
 
+# Got common operations. Only for devs and onyl for local fork.
+include git.mk
 
 all:
 	# .env
@@ -53,10 +55,10 @@ ci-release:
 dep-sub:
 	@echo ""
 	@echo "Installing gio sub module ..."
-	git submodule update --init --recursive
+	$(OS_GIT_BIN_NAME) submodule update --init --recursive
 
 	# and upgrade it. 
-	git submodule update --remote
+	$(OS_GIT_BIN_NAME) submodule update --remote
 	@echo ""
 
 dep-tools:
