@@ -30,7 +30,7 @@ GIT_COMMIT_MESSAGE='chore'
 git-fork-commit-push:
 	# do this when you ready to push changes to your github repo and then make a PR.
 
-	# example: make GIT_COMMIT_MESSAGE='chore-test' git-fork-commit-push
+	# for example: make GIT_COMMIT_MESSAGE='git-test' git-fork-commit-push
 
 	$(OS_GIT_BIN_NAME) add --all
 	$(OS_GIT_BIN_NAME) commit -am $(GIT_COMMIT_MESSAGE)
