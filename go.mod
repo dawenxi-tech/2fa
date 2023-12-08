@@ -1,6 +1,6 @@
 module github.com/dawenxi-tech/2fa
 
-go 1.21.4
+go 1.21.5
 
 require (
 	fyne.io/systray v1.10.0
