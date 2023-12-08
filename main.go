@@ -7,6 +7,7 @@ import (
 )
 
 // Version is initialized via ldflags or debug.BuildInfo.
+// See: https://github.com/vorlif/xspreak/commit/8ff2092f126bf096a56062ac13126af8ece4eb71#diff-87db21a973eed4fef5f32b267aa60fcee5cbdf03c67fafdc2a9b553bb0b15f34
 var Version = ""
 
 func init() {

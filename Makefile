@@ -107,11 +107,20 @@ endif
 	@echo ""
 	@echo "Installing icns maker and icns viewer using go install, so that we can generate icons."
 	@echo ""
-	# https://github.com/JackMordaunt/icns/releases/tag/v2.2.7
-	go install github.com/jackmordaunt/icns/v2/cmd/icnsify@v2.2.7
+	
 	# only works on latest...
-	#go install github.com/jackmordaunt/icns/cmd/preview@v2.2.7
+	go install github.com/jackmordaunt/icns/v2/cmd/icnsify@latest
 	go install github.com/jackmordaunt/icns/cmd/preview@latest
+
+	# He is setting it up so the tags work, so we have a stable version.
+	
+	# https://github.com/JackMordaunt/icns/releases/tag/v2.2.7
+	#go install github.com/jackmordaunt/icns/v2/cmd/icnsify@v2.2.7
+	#go install github.com/jackmordaunt/icns/cmd/preview@v2.2.7
+	
+	# https://github.com/JackMordaunt/icns/releases/tag/v3.0.0
+	#go install github.com/jackmordaunt/icns/v2/cmd/icnsify@v3.0.0
+	#go install github.com/jackmordaunt/icns/cmd/preview@v3.0.0
 
 	@echo ""
 	@echo "Installing gio builder using go install, so that we can build gio apps."
@@ -228,7 +237,7 @@ build-macos:
 
 	rm -rf ${DIR_RELEASE}/macos/$(MAC_ARCH)
 
-	# NOTE: Not sure if we want the version to be part of the output name. I think not.
+	# NOTE: Lets keep the output name stanrd ( without version info in it ), so that packaging and upgrades are not complicted by name being inconsistent.
 	gogio -target macos -arch $(MAC_ARCH) -appid $(BUNDLE_ID) -tags='RELEASE' -ldflags $(APP_VERSION_LDFLAGS) -icon $(APP_ICON) -o ${DIR_RELEASE}/macos/app/$(MAC_ARCH)/$(APP_NAME).app . 
 
 	$(MAKE) dist-list
@@ -269,7 +278,7 @@ build-linux:
 	mkdir -p ${DIR_RELEASE}/linux/$(LINUX_ARCH)
 
 	# gogio seems to not support linux desktop builds, so building with go.
-	go build -tags='RELEASE' -ldflags $(APP_VERSION_LDFLAGS) -o ${DIR_RELEASE}/linux/$(LINUX_ARCH)/$(APP_NAME).exe . 
+	go build -tags 'RELEASE' -ldflags $(APP_VERSION_LDFLAGS) -o ${DIR_RELEASE}/linux/$(LINUX_ARCH)/$(APP_NAME).exe . 
 
 	cp 2fa-appimage.yml ${DIR_RELEASE}/linux/$(LINUX_ARCH)
 	cp assets/2fa.png ${DIR_RELEASE}/linux/$(LINUX_ARCH)
@@ -288,14 +297,32 @@ run:
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
 	@echo "Detected Windows ..."
-	
+ifeq ($(OS_GO_ARCH),amd64)
+	@echo ""
+	@echo "Detected amd64 ..."
+	$(MAKE) run-windows-amd64
+endif
+ifeq ($(OS_GO_ARCH),arm64)
+	@echo ""
+	@echo "Detected arm64 ..."
+	$(MAKE) run-windows-arm64
+endif
 	@echo ""
 endif
 
 ifeq ($(OS_GO_OS),darwin)
 	@echo ""
 	@echo "Detected Darwin ..."
-
+ifeq ($(OS_GO_ARCH),amd64)
+	@echo ""
+	@echo "Detected amd64 ..."
+	$(MAKE) run-macos-amd64
+endif
+ifeq ($(OS_GO_ARCH),arm64)
+	@echo ""
+	@echo "Detected arm64 ..."
+	$(MAKE) run-macos-arm64
+endif
 	@echo ""
 endif
 
@@ -314,6 +341,15 @@ run-macos-arm64:
 run-macos:
 	open ${DIR_RELEASE}/macos/app/$(MAC_ARCH)/$(APP_NAME).app
 
+
+run-windows-amd64:
+	MAC_ARCH=amd64 $(MAKE) run-windows
+
+run-windows-arm64:
+	MAC_ARCH=arm64 $(MAKE) run-windows
+
+run-windows:
+	start ${DIR_RELEASE}/windows/exe/$(MAC_ARCH)/$(APP_NAME).exe
 
 ### PACKAGE
 
