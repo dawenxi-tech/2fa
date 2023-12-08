@@ -28,6 +28,6 @@ git-fork-merge-upstream:
 git-fork-commit-push:
 	# do this when you ready to push changes to your github repo and then make a PR.
 
-	$(OS_GIT_BIN_NAME) git add --all
-	$(OS_GIT_BIN_NAME) git commit -am 'chore'
-	$(OS_GIT_BIN_NAME) git push origin main
+	$(OS_GIT_BIN_NAME) add --all
+	$(OS_GIT_BIN_NAME) commit -am 'chore'
+	$(OS_GIT_BIN_NAME) push origin main --force
