@@ -1,21 +1,18 @@
-
-
-APP_NAME=2FA
-BUNDLE_ID=tech.dawenxi.2fa
 DIR_RELEASE=./dist/release
-APP_ICON=./assets-backup/2fa.png
 
+## env defaults.
+#APP_NAME=2FA
+#BUNDLE_ID=tech.dawenxi.2fa
+#APP_ICON=./assets-backup/2fa.png
 
-
-# env
-# to override above variables.
 include env.mk
+# optional. create this file to overide the env defaults.
+-include .env
 
-# Got common operations. Only for devs and onyl for local fork.
+# git operations.
 include git.mk
 
 all:
-	# .env
 	$(MAKE) env-print
 
 	$(MAKE) dep-sub
@@ -27,7 +24,8 @@ all:
 	$(MAKE) pack
 
 ci-build: 
-	# only runs in ci on a branch push
+	# Called from .github/workflows/build.yaml
+	
 	@echo ""
 	@echo "ci-build called ..."
 	@echo ""
@@ -42,7 +40,7 @@ ci-build:
 	$(MAKE) all
 
 ci-release: 
-	# only runs in ci on a tag push !
+	# Called from .github/workflows/release.yaml
 	@echo ""
 	@echo "ci-release called ..."
 	@echo ""
@@ -154,6 +152,13 @@ dist-list:
 	@echo ""
 	@echo "Dist folder has ..."
 	tree  -l -a -C $(DIR_RELEASE)
+	@echo ""
+
+dist-del:
+	@echo ""
+	@echo "Dist folder cleaning ..."
+	# THIS IS NOT cross platform..
+	#rm -rf $(DIR_RELEASE)
 	@echo ""
 
 ### MODS

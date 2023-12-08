@@ -35,34 +35,35 @@ Currently the following is built:
 
 
 ```sh
-# Does everything.
+# Does everything to buld and package the app.
 make all
-```
 
-```sh
+# To setup your fork. 
+# Run this after you have done a git clone of your remote fork to your local laptop.
+make git-fork-init
+
+# To fetch and rebase upstream to your local fork. 
+# Run this before you push, so that you have everyones else changes rebased onto your repoö
+make git-fork-merge-upstream
+
+# To commit and force push your local fork to your remote github fork.
+# Run this when your want test your changes in CI, and then PR ( usinfg the wbe gui ) to the remote Upstream repo.
+make GIT_COMMIT_MESSAGE='git-test' git-fork-commit-push
+
 # Get the gio sub module.
 make dep-sub 
-```
 
-```sh
-# install and tooling need for your OS
+# Install all tooling need for your OS
 make dep-tools
-```
 
-```sh
-# build for your OS
+# Bulld for your OS.
 make buuld
-```
 
-
-```sh
-# package for your os.
+# Package for your OS.
 make pack
-```
 
-
-```sh
-# Called by Github action only and builds for all OS using a simple github workflow Matrix.
+# Called by Github action to build for all Os's.
+# Run this to do locally what will happen in Github CI.
 make ci-build
 make ci-release
 ```

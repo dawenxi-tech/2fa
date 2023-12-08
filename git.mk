@@ -1,4 +1,5 @@
-# git operations for devs on forks.
+# git.mk
+# operations for devs on forks.
 
 git-fork-init:
 	# do this after git clone your fork.
