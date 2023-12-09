@@ -41,7 +41,7 @@ OS_MAKE_BIN_WHICH_VERSION=$(MAKE_VERSION)
 DIR_RELEASE=./dist/release
 
 # version
-APP_VERSION=$(shell git-describe-semver -dir $(OS_GIT_FSPATH) --fallback v0.0.0)
+APP_VERSION=$(shell git-describe-semver --dir $(OS_GIT_FSPATH) --fallback v0.0.0)
 APP_VERSION_LDFLAGS="-X 'github.com/dawenxi-tech/2fa/main.Version=$(APP_VERSION)'"
 
 # Env - create a .env to overide these values.
@@ -55,8 +55,8 @@ env-init:
 	@echo ""
 	@echo "Installing cross OS go semver tool using go install, so that we can get verion info easily."
 	@echo ""
-	# https://github.com/choffmeister/git-describe-semver/releases/tag/v0.3.11
-	go install github.com/choffmeister/git-describe-semver@v0.3.11
+	# https://github.com/choffmeister/git-describe-semver/releases/tag/v0.4.0
+	go install github.com/choffmeister/git-describe-semver@v0.4.0
 
 env-print: env-init
 
