@@ -1,10 +1,5 @@
 DIR_RELEASE=./dist/release
 
-## env defaults.
-#APP_NAME=2FA
-#BUNDLE_ID=tech.dawenxi.2fa
-#APP_ICON=./assets-backup/2fa.png
-
 include env.mk
 # optional. create this file to overide the env defaults.
 -include .env
