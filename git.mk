@@ -11,7 +11,6 @@ git-fork-init:
 	$(MAKE) dep-sub
 
 git-fork-merge-upstream:
-	# Sync your fork.
 	# do this to catchup to upstream main repo.
 	# # best to do this before you do a local push up to your own Github Repo, so that all changes from others are included.
 
@@ -21,11 +20,11 @@ git-fork-merge-upstream:
 	# https://everythingdevops.dev/how-to-avoid-merge-commits-when-syncing-a-fork/
 
 	$(OS_GIT_BIN_NAME) remote -v
-	#$(OS_GIT_BIN_NAME) pull --rebase upstream main
+	$(OS_GIT_BIN_NAME) pull --rebase upstream main
 
-	$(OS_GIT_BIN_NAME) checkout main
-	$(OS_GIT_BIN_NAME) fetch upstream
-	$(OS_GIT_BIN_NAME) merge upstream/main
+	#$(OS_GIT_BIN_NAME) fetch upstream
+	#$(OS_GIT_BIN_NAME) checkout main
+	#$(OS_GIT_BIN_NAME) merge upstream/main
 
 GIT_COMMIT_MESSAGE='chore'
 
