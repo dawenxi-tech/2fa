@@ -24,7 +24,7 @@ git-fork-merge-upstream:
 
 	$(OS_GIT_BIN_NAME) checkout main
 	$(OS_GIT_BIN_NAME) fetch upstream
-	$(OS_GIT_BIN_NAME) merge upstream/main
+	$(OS_GIT_BIN_NAME) merge upstream/main --squash
 
 GIT_COMMIT_MESSAGE='chore'
 
