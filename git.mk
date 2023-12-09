@@ -20,11 +20,11 @@ git-fork-merge-upstream:
 	# https://everythingdevops.dev/how-to-avoid-merge-commits-when-syncing-a-fork/
 
 	$(OS_GIT_BIN_NAME) remote -v
-	$(OS_GIT_BIN_NAME) pull --rebase upstream main
+	#$(OS_GIT_BIN_NAME) pull --rebase upstream main
 
-	#$(OS_GIT_BIN_NAME) fetch upstream
-	#$(OS_GIT_BIN_NAME) checkout main
-	#$(OS_GIT_BIN_NAME) merge upstream/main
+	$(OS_GIT_BIN_NAME) checkout main
+	$(OS_GIT_BIN_NAME) fetch upstream
+	$(OS_GIT_BIN_NAME) merge upstream/main --squash
 
 GIT_COMMIT_MESSAGE='chore'
 

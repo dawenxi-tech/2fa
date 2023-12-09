@@ -1,10 +1,5 @@
 DIR_RELEASE=./dist/release
 
-## env defaults.
-#APP_NAME=2FA
-#BUNDLE_ID=tech.dawenxi.2fa
-#APP_ICON=./assets-backup/2fa.png
-
 include env.mk
 # optional. create this file to overide the env defaults.
 -include .env
@@ -142,6 +137,11 @@ endif
 	go install github.com/oligot/go-mod-upgrade@v0.9.1
 
 	@echo ""
+	@echo "Installing cross OS file system tool using go install, so that we can do file system ops easily."
+	# need mkdir -p, rm -rf , ls -al for cleaning and creating the Dist folder cross platform.
+	@echo ""
+
+	@echo ""
 	@echo "Dep tools phase done ..."
 	@echo ""
 
@@ -200,9 +200,8 @@ build:
 ifeq ($(OS_GO_OS),windows)
 	@echo ""
 	@echo "Detected Windows ..."
-	# Windows cant build tray code: https://github.com/gedw99/2fa/actions/runs/7034294593/job/19142004038
-	@echo "Skipping Windows until we support Windows tray ..."
-	#$(MAKE) build-windows-all
+	# TODO: Windows cant build tray code: https://github.com/gedw99/2fa/actions/runs/7034294593/job/19142004038
+	$(MAKE) build-windows-all
 	@echo ""
 endif
 
