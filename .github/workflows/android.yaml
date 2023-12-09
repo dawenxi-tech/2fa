@@ -1,7 +1,7 @@
 # from https://github.com/g45t345rt/g45w/blob/master/.github/workflows/build_android.yml
 # will adjust once i see this works.
 
-name: Build Android
+name: android
 
 on:
   workflow_dispatch:
